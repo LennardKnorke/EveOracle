@@ -1,0 +1,45 @@
+/* frontend/src/components/TeamConstellation.css */
+.team-constellation {
+    display: flex;
+    gap: 1.5rem;
+    padding: 1rem;
+    background: #1e1e2e;
+    border-radius: 8px;
+    min-height: 200px;
+    min-width: 300px;
+}
+
+.column {
+    flex: 1;
+    background: #2a2a3a;
+    border-radius: 6px;
+    padding: 0.75rem;
+    color: #eee;
+}
+
+.column h3 {
+    margin-top: 0;
+    border-bottom: 1px solid #444;
+    padding-bottom: 0.5rem;
+    font-size: 1rem;
+    text-align: center;
+}
+
+.column ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.column li {
+    padding: 0.25rem 0;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #333;
+}
+
+.column li.empty {
+    color: #666;
+    font-style: italic;
+}

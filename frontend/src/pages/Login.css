@@ -1,0 +1,13 @@
+/* frontend/src/pages/Home.css */
+.sso-button {
+    cursor: pointer;
+    width: 200px;        /* adjust as needed */
+    height: auto;
+    transition: transform 0.2s;
+    border: none;
+    background: transparent;
+}
+
+.sso-button:hover {
+    transform: scale(1.05);
+}

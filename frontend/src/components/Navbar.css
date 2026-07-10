@@ -1,0 +1,51 @@
+/* frontend/src/components/Navbar.css */
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+    background: #1a1a2e;
+    color: white;
+}
+
+.navbar-brand a {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #e94560;
+    text-decoration: none;
+}
+
+.navbar-menu a {
+    margin: 0 1rem;
+    color: #eee;
+    text-decoration: none;
+}
+
+.navbar-menu a:hover {
+    color: #e94560;
+}
+
+.navbar-user {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.navbar-user span {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.logout-btn {
+    background: #e94560;
+    color: white;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.logout-btn:hover {
+    background: #c73652;
+}

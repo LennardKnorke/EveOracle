@@ -1,0 +1,11 @@
+.home {
+    padding: 40px;
+}
+
+.card-container {
+    display: flex;
+    justify-content: space-evenly;
+    align-items:stretch;
+    gap: 30px;
+    margin-top: 40px;
+}

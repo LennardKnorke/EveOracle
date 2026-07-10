@@ -1,0 +1,67 @@
+/* frontend/src/pages/EveOracleUI.css */
+
+.eve-oracle-ui {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.ui-layout {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.input-area {
+    flex: 1 1 300px;
+    min-width: 250px;
+}
+
+.team-area {
+    flex: 2 1 400px;
+    min-width: 300px;
+}
+
+.character-textarea {
+    width: 100%;
+    font-family: monospace;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    resize: vertical;
+}
+
+button {
+    margin-top: 10px;
+    padding: 8px 16px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+}
+
+.error {
+    color: red;
+    margin-top: 10px;
+}
+
+.results {
+    margin-top: 20px;
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 4px;
+    overflow-x: auto;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.results pre {
+    font-size: 0.8rem;
+}
