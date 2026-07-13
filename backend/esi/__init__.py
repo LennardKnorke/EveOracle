@@ -11,7 +11,11 @@ import string
 import urllib
 
 from .zkillfetch import fetch_zkill_statistic
-from .esifetch import fetch_esi_search, fetch_esi_charids
+from .esifetch import (
+    fetch_esi_search, 
+    fetch_esi_charids, 
+    fetch_cooperation_standings, fetch_character_standings, 
+)
 
 from config import *
 

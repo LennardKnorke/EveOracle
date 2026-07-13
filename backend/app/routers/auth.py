@@ -50,12 +50,14 @@ async def validate_session(authorization : str = Header(...), db : AsyncSession 
 
         return {
             "session_key" : session_key,
-            "char_name" : existing_user.char_name
+            "char_name" : existing_user.char_name,
+            "char_id" : existing_user.char_id
         }
     else:
         return {
             "session_key" : None,
-            "char_name" : None
+            "char_name" : None,
+            "char_id" : None
         }
 
 

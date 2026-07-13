@@ -1,14 +1,14 @@
 import { Link } from "react-router-dom";
 
-import "./TargetCard.css";
+import "./MenuCard.css";
 
-type TargetCardProps = {
+type MenuCardOption = {
   title: string;
   description: string;
   link: string;
 };
 
-function TargetCard({ title, description, link }: TargetCardProps) {
+function MenuCard({ title, description, link }: MenuCardOption) {
   return (
     <Link to={link} className="card-link">
         <div className="target-card">
@@ -19,4 +19,4 @@ function TargetCard({ title, description, link }: TargetCardProps) {
   );
 }
 
-export default TargetCard;
+export default MenuCard;

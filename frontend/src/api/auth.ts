@@ -1,6 +1,6 @@
 // frontend/src/api/auth.ts
 
-export async function validate_session(session_key : string) : Promise<{ session_key: string | null, char_name: string | null }> {
+export async function validate_session(session_key : string) : Promise<{ session_key: string | null, char_name: string | null, char_id: string| null }> {
     const response = await fetch(
         "http://localhost:8080/auth/validate_session/",
         {
@@ -19,6 +19,7 @@ export async function validate_session(session_key : string) : Promise<{ session
 
     return {
         session_key: data.session_key ?? null,
-        char_name: data.char_name ?? null
+        char_name: data.char_name ?? null,
+        char_id: data.char_id ?? null,
     };
 };

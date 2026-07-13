@@ -1,5 +1,5 @@
 /.env
 /.vscode
 /esi_static_data
-/__pycache__
-/____Tests
+__pycache__/
+*.pyc

@@ -12,7 +12,7 @@ from sqlalchemy import select
 
 from database_models.useraccount import UserAccount
 from database import get_db
-from esi import fetch_zkill_statistic, fetch_esi_search, fetch_esi_charids
+from esi import fetch_zkill_statistic, fetch_esi_search, fetch_esi_charids, fetch_cooperation_standings
 
 
 router = APIRouter()
@@ -33,21 +33,43 @@ async def get_char_stats(request : CharStatsRequest, authorization : str = Heade
     if not existing_user:
         return {}
     
-    char_id = existing_user.char_id
-    access_token = existing_user.access_token
     characters = request.characters
 
-    id_results = fetch_esi_charids(characters)['characters']
-    results = []
+    id_results = fetch_esi_charids(characters)
+    id_results = id_results['characters']
+    results = {}
     for char in id_results:
         id = char['id']
-        name = char['name']
+        name = str(char['name'])
 
         char_results = fetch_zkill_statistic('characterID', id)
-        char_results['id'] = id
-        char_results['name'] = name
-        results.append(char_results)
+        results[name] = {
+            "char_id" : id,
+            "name" : name,
+            "corporationID" : char_results['info']['corporationID'],
+            "allianceID" : char_results['info']['allianceID'],
+            "stats" : char_results
+        }
+    return results
 
-    return {
-        "results" : results
-    }
+
+
+@router.post("/standings/cooperation")
+async def get_cooperation_standings(cooperation_id : str, authorization : str = Header(...), db : AsyncSession = Depends(get_db)):
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Invalid authorization header")
+    
+    session_key = authorization.replace("Bearer ", "")
+    stmt = select(UserAccount).where(UserAccount.session_key == session_key)
+    result = await db.execute(stmt)
+    existing_user = result.scalar_one_or_none()
+
+    if not existing_user:
+        return {}
+
+    access_token = existing_user.access_token
+
+    data = fetch_cooperation_standings(cooperation_id, access_token)
+    return data
+
+

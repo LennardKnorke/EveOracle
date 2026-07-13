@@ -4,25 +4,25 @@
     align-items: center;
     justify-content: space-between;
     padding: 1rem 2rem;
-    background: #1a1a2e;
-    color: white;
+    background: var(--accent-bg);
+    color: var(--text-h);
 }
 
 .navbar-brand a {
     font-size: 1.5rem;
     font-weight: bold;
-    color: #e94560;
+    color: var(--text-h);
     text-decoration: none;
 }
 
 .navbar-menu a {
     margin: 0 1rem;
-    color: #eee;
+    color: var(--text);
     text-decoration: none;
 }
 
 .navbar-menu a:hover {
-    color: #e94560;
+    color: var(--accent);;
 }
 
 .navbar-user {
@@ -35,6 +35,7 @@
     font-size: 0.9rem;
     opacity: 0.9;
 }
+
 
 .logout-btn {
     background: #e94560;

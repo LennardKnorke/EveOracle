@@ -1,5 +1,5 @@
 /* frontend/src/components/TeamConstellation.css */
-.team-constellation {
+.team-manager-window {
     display: flex;
     gap: 1.5rem;
     padding: 1rem;
@@ -8,6 +8,16 @@
     min-height: 200px;
     min-width: 300px;
 }
+
+
+
+.token {
+    align-self: flex-start;
+}
+
+
+
+
 
 .column {
     flex: 1;
@@ -42,4 +52,40 @@
 .column li.empty {
     color: #666;
     font-style: italic;
+}
+
+.column.drag-over {
+    background: #3a3a5a;
+    border: 2px dashed #888;
+}
+
+/* Character Item Layout styling */
+.column li.character-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: grab;
+    padding: 0.35rem 0.25rem;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #333;
+}
+
+.column li.character-item:active {
+    cursor: grabbing;
+}
+
+.character-portrait {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1px solid #444;
+    background-color: #111;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.character-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

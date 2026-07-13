@@ -1,23 +1,24 @@
 // frontend/src/pages/Home.tsx
 
-import TargetCard from "../components/TargetCard";
+import MenuCard from "../components/MenuCard";
 
 import "./Home.css";
 
 
 function Home() {
+    const username = localStorage.getItem("char_name");
     return (
         <div className="home">
 
-            <h1>Welcome</h1>
-            <p>Yey</p>  
+            <h1>Welcome {username}</h1>
+            
             <div className="card-container">
-                <TargetCard
+                <MenuCard
                     title="Eve Oracle"
                     description="Review Local Intel."
                     link="/EveOracleUI"
                 />   
-                <TargetCard
+                <MenuCard
                     title="Model Dojo"
                     description="Oversee AI Model Training (IN DEV!)."
                     link="/ModelDojo"

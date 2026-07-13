@@ -10,6 +10,7 @@ function Navbar() {
     const handleLogout = () => {
         localStorage.removeItem('session_key');
         localStorage.removeItem('char_name');
+        localStorage.removeItem('char_id');
         navigate('/'); // or navigate('/login') if you have a dedicated login route
         // Optionally force a page reload to reset state
         window.location.reload();
@@ -27,7 +28,9 @@ function Navbar() {
             </div>
             <div className="navbar-user">
                 <span>👤 {charName}</span>
-                <button onClick={handleLogout} className="logout-btn">Logout</button>
+                <button onClick={handleLogout} className="logout-btn">
+                    Logout
+                </button>
             </div>
         </nav>
     );

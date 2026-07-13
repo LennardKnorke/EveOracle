@@ -13,8 +13,6 @@ import Settings from "./pages/Settings";
 
 
 
-
-
 function App() {
     const location = useLocation();
     const navigate = useNavigate();
@@ -41,13 +39,15 @@ function App() {
 
         // 3. Validate the session asynchronously
         validate_session(session_key)
-            .then(({ session_key : validKey, char_name }) => {
+            .then(({ session_key : validKey, char_name, char_id }) => {
                 if (validKey) {
                     localStorage.setItem('char_name', char_name || '');
+                    localStorage.setItem('char_id', char_id || '');
                     setIsAuthenticated(true);
                 } else {
                     localStorage.removeItem('session_key');
                     localStorage.removeItem('char_name');
+                    localStorage.removeItem('char_id');
                     setIsAuthenticated(false);
                 }
             })
@@ -55,6 +55,7 @@ function App() {
                 setIsAuthenticated(false);
                 localStorage.removeItem('session_key');
                 localStorage.removeItem('char_name');
+                localStorage.removeItem('char_id');
             });
     }, [location, navigate]); 
 
