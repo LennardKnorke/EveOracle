@@ -4,4 +4,7 @@
 __pycache__/
 *.pyc
 tmp.py
-response_structure.txt
+response_structure.md
+esi_killmail_history/
+eve-online-static-data/
+build_ships.py

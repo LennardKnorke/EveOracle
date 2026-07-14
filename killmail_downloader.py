@@ -14,6 +14,9 @@ killmail_url = "https://data.everef.net/killmails"
 MIN_DELAY = 0.8
 MAX_DELAY = 2.0
 def rate_limit():
+    """
+    Amateur rate limit but works
+    """
     time.sleep(random.uniform(MIN_DELAY, MAX_DELAY))
 
 
@@ -21,7 +24,7 @@ start_date = date(2007, 12, 5)
 end_date = date.today() - timedelta(days=2)
 
 
-download_dir = Path("killmails")
+download_dir = Path("esi_killmail_history")
 download_dir.mkdir(exist_ok=True)
 
 

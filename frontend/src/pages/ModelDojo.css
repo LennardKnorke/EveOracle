@@ -1,0 +1,14 @@
+/* frontend/src/pages/ModelDojo.css */
+.model-dojo {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.model-dojo h2 {
+    color: #eee;
+}
+
+.model-dojo p {
+    color: #aaa;
+}
