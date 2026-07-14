@@ -1,10 +1,13 @@
 # backend/app/api.py
+import asyncio
 from contextlib import asynccontextmanager
 from datetime import datetime
-import asyncio
+import os
 
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 import anyio
@@ -15,8 +18,6 @@ from database import get_db, Base, engine
 from database_models.useraccount import UserAccount
 
 from config import *
-
-
 
 
 @asynccontextmanager
@@ -51,6 +52,12 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
+)
+
+app.mount(
+    "/static",
+    StaticFiles(directory="esi_static_data"),
+    name="static"
 )
 
 

@@ -3,3 +3,5 @@
 /esi_static_data
 __pycache__/
 *.pyc
+tmp.py
+response_structure.txt

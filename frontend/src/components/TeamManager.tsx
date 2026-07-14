@@ -1,75 +1,74 @@
-// frontend/src/components/TeamConstellation.tsx
+// frontend/src/components/TeamManager.tsx
+
 import React, { useState } from 'react';
-
-import {type CharIdentifier, type CharacterStats} from '../api/zkill.ts'
-
+import { type CharacterStats } from '../api/zkill';
 import './TeamManager.css';
 
-
 export type ConstellationColumnKey = 'allies' | 'enemies' | 'neutrals';
+
 export interface TeamConstellationProps {
     allies: CharacterStats[];
     enemies: CharacterStats[];
     neutrals: CharacterStats[];
     onMoveCharacter: (
-        from: 'allies' | 'enemies' | 'neutrals',
-        to: 'allies' | 'enemies' | 'neutrals',
+        from: ConstellationColumnKey,
+        to: ConstellationColumnKey,
         character: CharacterStats
     ) => void;
     onRemoveCharacter: (
-        from: 'allies' | 'enemies' | 'neutrals',
+        from: ConstellationColumnKey,
         character: CharacterStats
     ) => void;
-};
-
+}
 
 interface PlayerTeamTokenProps {
     character: CharacterStats;
     source: ConstellationColumnKey;
     onDragStart: (e: React.DragEvent<HTMLLIElement>, source: ConstellationColumnKey, character: CharacterStats) => void;
     onRemove: (source: ConstellationColumnKey, character: CharacterStats) => void;
-};
+}
 
 export function PlayerTeamToken({ character, source, onDragStart, onRemove }: PlayerTeamTokenProps) {
     const portraitUrl = `https://images.evetech.net/characters/${character.char.char_id}/portrait?size=32`;
-    const alliancePortraitUrl = `https://images.evetech.net/alliances/${character.char.alliance_id}/logo?size=32`;
+    const alliancePortraitUrl = character.char.alliance_id
+        ? `https://images.evetech.net/alliances/${character.char.alliance_id}/logo?size=32`
+        : undefined;
+
     return (
-        <li 
+        <li
             className="PlayerTeamToken"
             draggable
             onDragStart={(e) => onDragStart(e, source, character)}
         >
             <div className="token">
-                <img 
-                    src={portraitUrl} 
-                    alt={character.char.char_name} 
-                    className="character-portrait"
-                    loading="lazy"
-                />
-                <img 
-                    src={alliancePortraitUrl} 
-                    alt={character.char.char_name} 
-                    className="alliance-portrait"
-                    loading="lazy"
-                />
+                <img src={portraitUrl} alt={character.char.char_name} className="character-portrait" loading="lazy" />
+                {alliancePortraitUrl && (
+                    <img src={alliancePortraitUrl} alt="Alliance" className="alliance-portrait" loading="lazy" />
+                )}
                 <span className="character-name">{character.char.char_name}</span>
             </div>
-            
-            <button 
-                type="button" 
+            <button
+                type="button"
                 onClick={(e) => {
-                    e.stopPropagation(); // Prevents dragging from being triggered on click
+                    e.stopPropagation();
                     onRemove(source, character);
                 }}
             >
-                Delete
+                ✕
             </button>
         </li>
     );
-};
+}
 
-export function TeamManagerWindow({allies, enemies, neutrals, onMoveCharacter, onRemoveCharacter } : TeamConstellationProps){
+export function TeamManagerWindow({
+    allies,
+    enemies,
+    neutrals,
+    onMoveCharacter,
+    onRemoveCharacter,
+}: TeamConstellationProps) {
     const [dragOverColumn, setDragOverColumn] = useState<ConstellationColumnKey | null>(null);
+
     const columns: { key: ConstellationColumnKey; label: string; items: CharacterStats[] }[] = [
         { key: 'allies', label: 'Allies', items: allies },
         { key: 'enemies', label: 'Enemies', items: enemies },
@@ -77,8 +76,8 @@ export function TeamManagerWindow({allies, enemies, neutrals, onMoveCharacter, o
     ];
 
     const handleDragStart = (
-        e: React.DragEvent<HTMLLIElement>, 
-        source: ConstellationColumnKey, 
+        e: React.DragEvent<HTMLLIElement>,
+        source: ConstellationColumnKey,
         character: CharacterStats
     ) => {
         e.dataTransfer.setData('text/plain', JSON.stringify({ source, character }));
@@ -86,7 +85,7 @@ export function TeamManagerWindow({allies, enemies, neutrals, onMoveCharacter, o
     };
 
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault(); // Required to allow a drop event
+        e.preventDefault(); // Required to allow drop
         e.dataTransfer.dropEffect = 'move';
     };
 
@@ -95,7 +94,14 @@ export function TeamManagerWindow({allies, enemies, neutrals, onMoveCharacter, o
         setDragOverColumn(key);
     };
 
-    const handleDragLeave = () => {
+    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+        // Only clear if we are truly leaving the container, not moving to a child
+        const currentTarget = e.currentTarget;
+        const relatedTarget = e.relatedTarget as Node | null;
+        if (relatedTarget && currentTarget.contains(relatedTarget)) {
+            // The cursor is still inside the container (on a child)
+            return;
+        }
         setDragOverColumn(null);
     };
 
@@ -140,7 +146,9 @@ export function TeamManagerWindow({allies, enemies, neutrals, onMoveCharacter, o
                                 />
                             ))
                         ) : (
-                            <li className="empty">—</li>
+                            <li className="empty">
+                                {dragOverColumn === key ? '⬇️ Drop here' : '—'}
+                            </li>
                         )}
                     </ul>
                 </div>

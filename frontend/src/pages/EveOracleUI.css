@@ -1,8 +1,7 @@
 /* frontend/src/pages/EveOracleUI.css */
-
 .eve-oracle-ui {
     padding: 20px;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
 }
 
@@ -13,15 +12,32 @@
     flex-wrap: wrap;
 }
 
+.ui-toprow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    align-items: flex-start;
+}
+
 .input-area {
-    flex: 1 1 300px;
-    min-width: 250px;
+    flex: 1 1 280px;
+    min-width: 220px;
+}
+
+.teammanager-area {
+    flex: 2 1 400px;
+    min-width: 280px;
+}
+
+.ui-mainrow {
+    width: 100%;
 }
 
 .team-area {
     flex: 2 1 400px;
     min-width: 300px;
 }
+
 
 .character-textarea {
     width: 100%;
@@ -31,6 +47,7 @@
     border-radius: 4px;
     resize: vertical;
 }
+
 
 button {
     margin-top: 10px;

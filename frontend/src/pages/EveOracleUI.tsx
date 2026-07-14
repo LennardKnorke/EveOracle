@@ -1,16 +1,14 @@
-//frontend/src/pages/EveOracleUI.tsx
+// frontend/src/pages/EveOracleUI.tsx
 
 import React, { useState } from 'react';
 import { fetch_zkill_char_stats, transformToCharacterStats, type CharacterStats } from "../api/zkill";
 import TeamManagerWindow from "../components/TeamManager";
-import "./EveOracleUI.css"; 
-
-
+import MatchupDashboard from "../components/MatchupDashboard";
+import "./EveOracleUI.css";
 
 function EveOracleUI() {
     const [characterInput, setCharacterInput] = useState('');
     const [loading, setLoading] = useState(false);
-    const [results, setResults] = useState<any>(null);
     const [error, setError] = useState<string | null>(null);
 
     const [allies, setAllies] = useState<CharacterStats[]>([]);
@@ -25,18 +23,14 @@ function EveOracleUI() {
     ) => {
         if (from === to) return;
 
-        // Get current lists
         const lists = { allies, enemies, neutrals };
         const setLists = { allies: setAllies, enemies: setEnemies, neutrals: setNeutrals };
 
-        // Remove from source
         const sourceList = lists[from].filter(char => char.char.char_id !== targetChar.char.char_id);
-        // Add
         const targetList = lists[to].some(char => char.char.char_id === targetChar.char.char_id)
             ? lists[to]
             : [...lists[to], targetChar];
 
-        // Update states
         setLists[from](sourceList);
         setLists[to](targetList);
     };
@@ -51,14 +45,12 @@ function EveOracleUI() {
         setLists[from](sourceList);
     };
 
-
     const handleFetch = async () => {
-        // Split input by newline, filter empty lines, trim whitespace
         const characters = characterInput
             .split('\n')
             .map(name => name.trim())
             .filter(name => name.length > 0);
-        
+
         if (characters.length === 0) {
             setError('Please enter at least one character name.');
             return;
@@ -72,14 +64,10 @@ function EveOracleUI() {
 
         setLoading(true);
         setError(null);
-        setResults(null);
 
         try {
-            // TODO: Transform before passing setting each list.
-            const data : CharacterStats[] = await fetch_zkill_char_stats(session_key, characters);
-            const CharStats = transformToCharacterStats(data);
-            
-            setResults(CharStats);
+            const rawData = await fetch_zkill_char_stats(session_key, characters);
+            const CharStats = transformToCharacterStats(rawData);
 
             const userCharName = localStorage.getItem('char_name');
 
@@ -90,7 +78,6 @@ function EveOracleUI() {
                 return;
             }
 
-            // Find the current user's character in the results
             const userEntry = CharStats.find(
                 (entry: CharacterStats) => entry.char.char_name?.toLowerCase() === userCharName?.toLowerCase()
             );
@@ -100,19 +87,16 @@ function EveOracleUI() {
                 userAllianceId = userEntry.char.alliance_id || null;
             }
 
-            // If we couldn't find the user, treat everyone as neutral (Properly map to CharacterStats objects)
             if (!userAllianceId) {
                 const fallbackNeutrals: CharacterStats[] = CharStats.filter(
                     (entry: CharacterStats) => entry.char?.char_name && entry.char?.char_id
                 );
-
                 setAllies([]);
                 setEnemies([]);
                 setNeutrals(fallbackNeutrals);
                 return;
             }
 
-            // Classify each character
             const alliesList: CharacterStats[] = [];
             const enemyList: CharacterStats[] = [];
 
@@ -136,6 +120,7 @@ function EveOracleUI() {
         } catch (err: any) {
             setError(err.message || 'Failed to fetch stats.');
             setAllies([]);
+            setEnemies([]);
             setNeutrals([]);
         } finally {
             setLoading(false);
@@ -146,9 +131,8 @@ function EveOracleUI() {
         <div className="eve-oracle-ui">
             <h2>EVE Oracle UI</h2>
             <div className="ui-layout">
-                {/* Top Area  - Search and Set up*/}
-                <div className='ui-toprow'>
-                    {/* Top Left: Input area */}
+                {/* Top Row: Input + Team Manager */}
+                <div className="ui-toprow">
                     <div className="input-area">
                         <p>Paste character names (one per line):</p>
                         <textarea
@@ -166,9 +150,8 @@ function EveOracleUI() {
                         {error && <div className="error">{error}</div>}
                     </div>
 
-                    {/* Top Right: Team constellation Management*/}
                     <div className="teammanager-area">
-                        <TeamManagerWindow 
+                        <TeamManagerWindow
                             allies={allies}
                             enemies={enemies}
                             neutrals={neutrals}
@@ -178,14 +161,9 @@ function EveOracleUI() {
                     </div>
                 </div>
 
-                <div className='ui-mainrow'>
-                    {/* Logging area (below). FUTURE DASHBOARD HERE */}
-                    {results && (
-                        <div className="results">
-                            <h3>Raw Results (debug)</h3>
-                            <pre>{JSON.stringify(results, null, 2)}</pre>
-                        </div>
-                    )}
+                {/* Bottom Row: Matchup Dashboard */}
+                <div className="ui-mainrow">
+                    <MatchupDashboard allies={allies} enemies={enemies} />
                 </div>
             </div>
         </div>
