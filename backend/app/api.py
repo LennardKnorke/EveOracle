@@ -19,6 +19,8 @@ from database_models.useraccount import UserAccount
 
 from config import *
 
+from app.routers import auth, user, esi_zkill
+from app.routers.scheduled_tasks import scheduler
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -26,9 +28,13 @@ async def lifespan(app: FastAPI):
     print("Starting up... Creating database tables if they do not exist.")
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    
+    # Background Tasks
+    scheduler.start()
 
     yield  # The application runs while this yield is active
     
+    scheduler.shutdown()
     print("Shutting down... Cleaning up database connections.")
     await engine.dispose()
     return
@@ -70,7 +76,7 @@ async def root() -> dict:
         "timestamp": datetime.now().isoformat()
     }
 
-from app.routers import auth, user, esi_zkill
+
 
 app.include_router(auth.router)
 app.include_router(user.router)

@@ -29,9 +29,10 @@ def fetch_zkill_statistic(entity_type : str, entity_id : str):
         raise ValueError("Invalid entity type!")
     
     headers = {
-        "Accept-Encoding": "json",
-        "User-Agent": "EveOrcale"
+        "Accept-Encoding": "gzip",
+        "User-Agent": "EveOracle"
     }
+    
     url = f"{ZKILL_API_URL}/stats/{entity_type}/{entity_id}/"
     response = requests.get(url, headers=headers)
 

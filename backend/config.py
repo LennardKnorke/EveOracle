@@ -48,6 +48,7 @@ ESI_IMG_URL = "https://images.evetech.net"
 ZKILL_API_URL = "https://zkillboard.com/api"
 
 
+
 # SCOPES
 SCOPES_FILE = os.path.join(os.path.dirname(__file__), "esi_rights.txt")
 def load_scopes() -> list[str]:
