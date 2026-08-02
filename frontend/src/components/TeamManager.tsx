@@ -29,7 +29,7 @@ interface PlayerTeamTokenProps {
 }
 
 export function PlayerTeamToken({ character, source, onDragStart, onRemove }: PlayerTeamTokenProps) {
-    const portraitUrl = `https://images.evetech.net/characters/${character.char.char_id}/portrait?size=32`;
+    const portraitUrl = `https://images.evetech.net/characters/${character.char.id}/portrait?size=32`;
     const alliancePortraitUrl = character.char.alliance_id
         ? `https://images.evetech.net/alliances/${character.char.alliance_id}/logo?size=32`
         : undefined;
@@ -138,7 +138,7 @@ export function TeamManagerWindow({
                         {items.length > 0 ? (
                             items.map((character) => (
                                 <PlayerTeamToken
-                                    key={character.char.char_id}
+                                    key={character.char.id}
                                     character={character}
                                     source={key}
                                     onDragStart={handleDragStart}

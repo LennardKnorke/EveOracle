@@ -1,19 +1,15 @@
 import { Link, useNavigate } from "react-router-dom";
-
+import { useAuth } from "../auth"; 
 import "./Navbar.css";
 
 
 function Navbar() {
     const navigate = useNavigate();
-    const charName = localStorage.getItem('char_name') || "Unknown Pilot";
+    const { user, logout } = useAuth();
 
-    const handleLogout = () => {
-        localStorage.removeItem('session_key');
-        localStorage.removeItem('char_name');
-        localStorage.removeItem('char_id');
-        navigate('/'); // or navigate('/login') if you have a dedicated login route
-        // Optionally force a page reload to reset state
-        window.location.reload();
+    const handleLogout = async () => {
+        await logout(); // clears cookie, clears context state
+        navigate('/');  // App will render <Login /> because user is null
     };
 
     return (
@@ -28,7 +24,7 @@ function Navbar() {
                 <Link to="/Settings">Settings</Link>
             </div>
             <div className="navbar-user">
-                <span>👤 {charName}</span>
+            <span>👤 {user?.char_name || "Unknown Pilot"}</span>
                 <button onClick={handleLogout} className="logout-btn">
                     Logout
                 </button>

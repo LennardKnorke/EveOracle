@@ -3,12 +3,12 @@ import "./Home.css";
 
 import ssoButton from "../assets/eve-sso-login-black-large.png";
 
-const login = () => {
-    const sso_url = "http://localhost:8080/auth/sso_login";
-    window.location.href = sso_url;
-};
+//const login = () => {
+//    const sso_url = "http://localhost:8080/auth/sso_login";
+//    window.location.href = sso_url;
+//};
 
-function Login() {
+function Login({ onLogin }: { onLogin: () => void }) {
     return (
         <div className="home">
             <h1>EVE Oracle</h1>
@@ -18,7 +18,7 @@ function Login() {
             <img 
                 src={ssoButton} 
                 alt="Login with EVE Online" 
-                onClick={login} 
+                onClick={onLogin} 
                 className="sso-button"
             />
         </div>

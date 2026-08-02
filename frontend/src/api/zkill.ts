@@ -2,7 +2,7 @@
 //frontend/src/api/zkill.ts
 export interface CharIdentifier {
     char_name: string;
-    char_id: string|number;
+    id: string|number;
     corporation_id: string|number;
     alliance_id: string|number;
 };
@@ -19,7 +19,7 @@ export function transformToCharacterStats(rawData: any): CharacterStats[] {
         const char: CharIdentifier = {
             char_name: entry.name || '',
             // Fallbacks handle camelCase or snake_case API conventions
-            char_id: entry.char_id || 0,
+            id: entry.id || 0,
             corporation_id: entry.corporationID || 0,
             alliance_id: entry.allianceID || 0,
         };

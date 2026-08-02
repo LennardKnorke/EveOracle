@@ -19,6 +19,8 @@ class Settings(BaseSettings):
 
     BACKEND_PORT: int = 8080
 
+    ENV : str = "development"
+
 
     class Config:
         env_file = ".env"

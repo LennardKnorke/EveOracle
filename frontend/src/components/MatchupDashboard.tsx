@@ -79,7 +79,7 @@ export function PlayerSmallCard({ character, onClick, isExpanded }: PlayerSmallC
     const weekly = getLastWeekStats(stats);
     const avgGangSize = stats.avgGangSize || 0;
 
-    const portraitUrl = `https://images.evetech.net/characters/${character.char.char_id}/portrait?size=64`;
+    const portraitUrl = `https://images.evetech.net/characters/${character.char.id}/portrait?size=64`;
     const corpLogoUrl = `https://images.evetech.net/corporations/${character.char.corporation_id}/logo?size=32`;
     const allianceLogoUrl = character.char.alliance_id
         ? `https://images.evetech.net/alliances/${character.char.alliance_id}/logo?size=32`
@@ -160,7 +160,7 @@ export function LargePlayerCard({ character, onClose }: LargePlayerCardProps) {
             <button className="close-button" onClick={onClose}>✕</button>
             <div className="large-card-header">
                 <img
-                    src={`https://images.evetech.net/characters/${character.char.char_id}/portrait?size=128`}
+                    src={`https://images.evetech.net/characters/${character.char.id}/portrait?size=128`}
                     alt={character.char.char_name}
                     className="large-portrait"
                 />
@@ -252,7 +252,7 @@ interface MatchupDashboardProps {
 }
 
 export function MatchupDashboard({ allies, enemies }: MatchupDashboardProps) {
-    // Track which character is expanded in each column (by char_id)
+    // Track which character is expanded in each column (by id)
     const [expandedAllies, setExpandedAllies] = useState<Set<number>>(new Set());
     const [expandedEnemies, setExpandedEnemies] = useState<Set<number>>(new Set());
 
@@ -286,13 +286,13 @@ export function MatchupDashboard({ allies, enemies }: MatchupDashboardProps) {
         }
 
         // If exactly one item is expanded, show the LargePlayerCard for that item
-        const expandedItem = items.find(item => expandedSet.has(item.char.char_id as number));
+        const expandedItem = items.find(item => expandedSet.has(item.char.id as number));
         if (expandedItem) {
             return (
                 <div className="dashboard-column expanded">
                     <LargePlayerCard
                         character={expandedItem}
-                        onClose={() => toggleExpand(expandedItem.char.char_id as number, column)}
+                        onClose={() => toggleExpand(expandedItem.char.id as number, column)}
                     />
                 </div>
             );
@@ -304,9 +304,9 @@ export function MatchupDashboard({ allies, enemies }: MatchupDashboardProps) {
                 <div className="column-scroll">
                     {items.map((char) => (
                         <PlayerSmallCard
-                            key={char.char.char_id}
+                            key={char.char.id}
                             character={char}
-                            onClick={() => toggleExpand(char.char.char_id as number, column)}
+                            onClick={() => toggleExpand(char.char.id as number, column)}
                             isExpanded={false}
                         />
                     ))}

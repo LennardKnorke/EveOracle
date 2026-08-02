@@ -79,6 +79,20 @@ async def get_current_user(
     }
 
 
+@router.post("/auth/logout")
+async def logout(response: Response, session: str = Cookie(None, alias="session"), db: AsyncSession = Depends(get_db)):
+    if session:
+        stmt = select(UserAccount).where(UserAccount.session_key == session)
+        result = await db.execute(stmt)
+        user = result.scalar_one_or_none()
+        if user:
+            user.session_key = None
+            await db.commit()
+    
+    # Delete the cookie
+    response.delete_cookie("session", path="/")
+    return {"message": "Logged out"}
+
 
 
 @router.get("/auth/sso_login")
@@ -154,16 +168,3 @@ async def callback(code: str, db : AsyncSession = Depends(get_db)):
     return response
 
 
-@router.post("/auth/logout")
-async def logout(response: Response, session: str = Cookie(None, alias="session"), db: AsyncSession = Depends(get_db)):
-    if session:
-        stmt = select(UserAccount).where(UserAccount.session_key == session)
-        result = await db.execute(stmt)
-        user = result.scalar_one_or_none()
-        if user:
-            user.session_key = None
-            await db.commit()
-    
-    # Delete the cookie
-    response.delete_cookie("session", path="/")
-    return {"message": "Logged out"}

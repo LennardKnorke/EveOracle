@@ -26,8 +26,8 @@ function EveOracleUI() {
         const lists = { allies, enemies, neutrals };
         const setLists = { allies: setAllies, enemies: setEnemies, neutrals: setNeutrals };
 
-        const sourceList = lists[from].filter(char => char.char.char_id !== targetChar.char.char_id);
-        const targetList = lists[to].some(char => char.char.char_id === targetChar.char.char_id)
+        const sourceList = lists[from].filter(char => char.char.id !== targetChar.char.id);
+        const targetList = lists[to].some(char => char.char.id === targetChar.char.id)
             ? lists[to]
             : [...lists[to], targetChar];
 
@@ -41,7 +41,7 @@ function EveOracleUI() {
     ) => {
         const lists = { allies, enemies, neutrals };
         const setLists = { allies: setAllies, enemies: setEnemies, neutrals: setNeutrals };
-        const sourceList = lists[from].filter(char => char.char.char_id !== targetChar.char.char_id);
+        const sourceList = lists[from].filter(char => char.char.id !== targetChar.char.id);
         setLists[from](sourceList);
     };
 
@@ -89,7 +89,7 @@ function EveOracleUI() {
 
             if (!userAllianceId) {
                 const fallbackNeutrals: CharacterStats[] = CharStats.filter(
-                    (entry: CharacterStats) => entry.char?.char_name && entry.char?.char_id
+                    (entry: CharacterStats) => entry.char?.char_name && entry.char?.id
                 );
                 setAllies([]);
                 setEnemies([]);
@@ -102,7 +102,7 @@ function EveOracleUI() {
 
             CharStats.forEach((entry: CharacterStats) => {
                 const name = entry.char?.char_name || null;
-                const id = entry.char?.char_id || null;
+                const id = entry.char?.id || null;
                 const allianceId = entry.char?.alliance_id || null;
 
                 if (!name || !id) return;
