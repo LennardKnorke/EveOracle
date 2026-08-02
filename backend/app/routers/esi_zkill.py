@@ -1,18 +1,13 @@
 #backend/app/routers/zfetch.py
 
-from datetime import datetime
-import hashlib
-import secrets
 from pydantic import BaseModel
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request, Header
-from fastapi.responses import RedirectResponse
+from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from database_models.useraccount import UserAccount
-from database import get_db
-from esi import fetch_zkill_statistic, fetch_esi_search, fetch_esi_charids, fetch_cooperation_standings
+from database import UserAccount, get_db
+from services.esi import fetch_zkill_statistic, fetch_esi_charids, fetch_cooperation_standings
 
 
 router = APIRouter()

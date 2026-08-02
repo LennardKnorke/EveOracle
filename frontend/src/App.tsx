@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import Home from "./pages/Home";
 import EveOracleUI from "./pages/EveOracleUI";
 import ModelDojo from "./pages/ModelDojo";
+import DataDesignerUI from "./pages/DataDesigner";
 import Login from "./pages/Login";
 import Navbar from "./components/Navbar";
 import { validate_session } from "./api/auth";
@@ -72,8 +73,9 @@ function App() {
             <Navbar />
             <Routes>
                 <Route path="/" element={<Home />} />
-                <Route path="/ModelDojo" element={<ModelDojo />} />
                 <Route path="/EveOracleUI" element={<EveOracleUI />} />
+                <Route path="/ModelDojo" element={<ModelDojo />} />
+                <Route path="/DataDesigner" element={<DataDesignerUI />} />
                 <Route path="/Settings" element={<Settings/>} />
             </Routes>
         </>

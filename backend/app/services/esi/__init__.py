@@ -1,7 +1,4 @@
 
-from datetime import datetime
-import json
-import os
 import requests
 
 import base64
@@ -10,18 +7,12 @@ import requests
 import string
 import urllib
 
-from .zkillfetch import fetch_zkill_statistic
-from .esifetch import (
-    fetch_esi_search, 
-    fetch_esi_charids, 
-    fetch_cooperation_standings, fetch_character_standings, 
-)
 
-from config import *
+from app.core.config import *
 
 def refresh_token(refresh_token : string):
     basic_auth = base64.urlsafe_b64encode(
-        f"{ESI_CLIENT_ID}:{ESI_CLIENT_SECRET}".encode("utf-8")
+        f"{settings.ESI_CLIENT_ID}:{settings.ESI_CLIENT_SECRET}".encode("utf-8")
     ).decode()
 
     payload = {
@@ -47,7 +38,7 @@ def refresh_token(refresh_token : string):
 
 def request_token(authorization_code):
     basic_auth = base64.urlsafe_b64encode(
-        f"{ESI_CLIENT_ID}:{ESI_CLIENT_SECRET}".encode("utf-8")
+        f"{settings.ESI_CLIENT_ID}:{settings.ESI_CLIENT_SECRET}".encode("utf-8")
     ).decode()
     headers = {
         "Authorization": f"Basic {basic_auth}",
@@ -69,8 +60,8 @@ def redirect_to_sso():
     state = "".join(random.choices(string.ascii_letters + string.digits, k=16))
     query_params = {
         "response_type": "code",
-        "client_id": ESI_CLIENT_ID,
-        "redirect_uri": ESI_CLIENT_CALLBACK_URL,
+        "client_id": settings.ESI_CLIENT_ID,
+        "redirect_uri": settings.ESI_CLIENT_CALLBACK_URL,
         "scope": " ".join(SCOPES),
         "state": state,
     }

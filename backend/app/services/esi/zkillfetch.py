@@ -1,17 +1,10 @@
-from datetime import datetime
-import json
-import os
 import requests
 
-import base64
-import random
 import requests
-import string
-import urllib
 
 
 
-from config import ZKILL_API_URL
+from app.core.config import ZKILL_API_URL
 
 STATS_ENTITIES = [
     "characterID",

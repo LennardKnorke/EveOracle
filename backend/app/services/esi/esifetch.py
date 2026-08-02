@@ -1,17 +1,11 @@
 
 
-from datetime import datetime
-import json
-import os
 import requests
 
-import base64
-import random
 import requests
 import string
-import urllib
 
-from config import ESI_CLIENT_ID, ESI_API_URL, ESI_IMG_URL
+from backend.app.core.config import ESI_API_URL
 
 def fetch_esi_search(char_id : string, access_token : string, category : string, search : string, strict : bool = True):
     url = f"{ESI_API_URL}/latest/search/"

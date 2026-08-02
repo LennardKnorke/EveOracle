@@ -17,11 +17,16 @@ function Home() {
                     title="Eve Oracle"
                     description="Review Local Intel."
                     link="/EveOracleUI"
-                />   
+                />
                 <MenuCard
                     title="Model Dojo"
                     description="Oversee AI Model Training (IN DEV!)."
                     link="/ModelDojo"
+                />
+                <MenuCard
+                    title="Dataset Designer"
+                    description="Build a dataset for model training."
+                    link="/DataDesigner"
                 />
             </div>
         </div>

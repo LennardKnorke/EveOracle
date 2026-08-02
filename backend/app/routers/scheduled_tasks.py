@@ -1,17 +1,14 @@
-from datetime import datetime, date, timedelta
-from datetime import datetime, date, timedelta
-import os
+from datetime import date, timedelta
+from datetime import date, timedelta
 import json
 from pathlib import Path
 import shutil
 import random
 import time
-from urllib.request import urlretrieve, urlopen
+from urllib.request import urlretrieve
 from urllib.error import HTTPError
 import requests
 
-from fastapi import FastAPI
-from contextlib import asynccontextmanager
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
@@ -24,11 +21,12 @@ START_DATE = date(2007, 12, 5)
 scheduler = BackgroundScheduler()
 
 
-download_dir = Path("killmail_history")
+download_dir = Path("static/killmail_history")
 download_dir.mkdir(exist_ok=True)
 
 
 def update_esi_killmails():
+    
     end_date = date.today() - timedelta(days=2)  # everef lags 2 days
     last_date = get_last_date(zkill=False)
     if last_date >= end_date:
@@ -40,6 +38,8 @@ def update_esi_killmails():
     return
 
 def update_zkill_killmails():
+    print("HURENSOHN!!!!!")
+
     t = random.random()
     time.sleep(10.0 * t)
     end_date = date.today() - timedelta(days=2)  # zkill also lags

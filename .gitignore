@@ -4,12 +4,5 @@ __pycache__/
 *.pyc
 
 
-/esi_static_data
-eve-online-static-data/
-
-
-response_structure.md
-killmail_history/
+static/
 temporary_scripts/
-
-build_ships.py

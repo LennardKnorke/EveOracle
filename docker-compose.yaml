@@ -1,0 +1,64 @@
+services:
+
+  mysql:
+    image: mysql:8.4
+    container_name: eveoracle-db
+
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DBNAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+
+
+    ports:
+      - "3306:3306"
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "mysql"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+
+  backend:
+    build: ./backend
+    container_name: eveoracle-backend
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+    environment:
+      DATABASE_URL: mysql+aiomysql://${DB_USER}:${DB_PASSWORD}@mysql/${DB_DBNAME}
+      ESI_CLIENT_ID: ${ESI_CLIENT_ID}
+      ESI_CLIENT_SECRET: ${ESI_CLIENT_SECRET}
+
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      - ./backend:/app
+      - ./backend/static:/app/static
+
+  frontend:
+    build: ./frontend
+    container_name: eveoracle-frontend
+
+    depends_on:
+      - backend
+
+    ports:
+      - "3000:3000"
+
+    volumes:
+      - ./frontend:/app
+
+
+volumes:
+  mysql_data:

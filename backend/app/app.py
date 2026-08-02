@@ -1,31 +1,23 @@
 # backend/app/api.py
-import asyncio
 from contextlib import asynccontextmanager
 from datetime import datetime
-import os
 
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-import anyio
 
 
-# Import our database helpers and models
-from database import get_db, Base, engine
-from database_models.useraccount import UserAccount
+from app.database import Base, engine
+from app.core.config import settings
 
-from config import *
-
-from app.routers import auth, user, esi_zkill
+#from routers import auth, user, esi_zkill
 from app.routers.scheduled_tasks import scheduler
+
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Database init
-    print("Starting up... Creating database tables if they do not exist.")
+    print("Starting EveOracle API")
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     
@@ -35,7 +27,8 @@ async def lifespan(app: FastAPI):
     yield  # The application runs while this yield is active
     
     scheduler.shutdown()
-    print("Shutting down... Cleaning up database connections.")
+
+    print("Shutting down.")
     await engine.dispose()
     return
 
@@ -48,22 +41,17 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-origins = [
-    "http://localhost:5173",
-    "localhost:5173"
-]
+
+#origins = [
+#    "http://localhost:5173"
+#]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    #allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
-)
-
-app.mount(
-    "/static",
-    StaticFiles(directory="esi_static_data"),
-    name="static"
 )
 
 
@@ -78,6 +66,6 @@ async def root() -> dict:
 
 
 
-app.include_router(auth.router)
-app.include_router(user.router)
-app.include_router(esi_zkill.router)
+#app.include_router(auth.router)
+#app.include_router(user.router)
+#app.include_router(esi_zkill.router)

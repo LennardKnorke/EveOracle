@@ -1,18 +1,16 @@
 #backend/app/routers/auth.py
 
 from datetime import datetime
-import hashlib
 import secrets
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request, Header
+from fastapi import APIRouter, Depends, HTTPException, Header
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from database_models.useraccount import UserAccount
-from database import get_db
-from esi import redirect_to_sso, request_token, verify_account, refresh_token
-from config import SCOPES, FRONTEND_PORT, FRONTEND_URL
+from app.database import get_db, UserAccount
+from app.services.esi import redirect_to_sso, request_token, verify_account, refresh_token
+from app.core.config import settings
 
 
 def generate_session_token():
@@ -124,5 +122,5 @@ async def callback(code: str, db : AsyncSession = Depends(get_db)):
     
     # Store user info in session or create JWT token for frontend
     # For now, we'll return success
-    react_app_url = f"http://{FRONTEND_URL}:{FRONTEND_PORT}/?session_key={session_key}"
+    react_app_url = f"http://{settings.FRONTEND_URL}:{settings.FRONTEND_PORT}/?session_key={session_key}"
     return RedirectResponse(react_app_url)

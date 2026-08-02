@@ -24,6 +24,7 @@ function Navbar() {
             <div className="navbar-menu">
                 <Link to="/EveOracleUI">Eve Oracle UI</Link>
                 <Link to="/ModelDojo">Model Dojo</Link>
+                <Link to="/DataDesigner">Dataset Designer</Link>
                 <Link to="/Settings">Settings</Link>
             </div>
             <div className="navbar-user">
