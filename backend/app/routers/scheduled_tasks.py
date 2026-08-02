@@ -1,3 +1,5 @@
+# backend/app/scheduled_tasks.py
+
 from datetime import date, timedelta
 from datetime import date, timedelta
 import json
@@ -38,7 +40,6 @@ def update_esi_killmails():
     return
 
 def update_zkill_killmails():
-    print("HURENSOHN!!!!!")
 
     t = random.random()
     time.sleep(10.0 * t)

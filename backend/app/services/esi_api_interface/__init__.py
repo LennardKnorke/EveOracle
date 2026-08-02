@@ -1,3 +1,4 @@
+# backend/app/services/esi_api_interface/__init__.py
 
 import requests
 
@@ -8,7 +9,10 @@ import string
 import urllib
 
 
-from app.core.config import *
+from app.core.config import settings, ESI_TOKEN_URL, ESI_AUTH_URL, SCOPES, ESI_VERIFY_URL
+from app.services.esi_api_interface.zkillphone import ZPhone, ZkillPhone
+from app.services.esi_api_interface.esiphone import ESIPhone, ESI_Phone
+
 
 def refresh_token(refresh_token : string):
     basic_auth = base64.urlsafe_b64encode(
@@ -61,7 +65,7 @@ def redirect_to_sso():
     query_params = {
         "response_type": "code",
         "client_id": settings.ESI_CLIENT_ID,
-        "redirect_uri": settings.ESI_CLIENT_CALLBACK_URL,
+        "redirect_uri": settings.ESI_CALLBACK_URL,
         "scope": " ".join(SCOPES),
         "state": state,
     }
@@ -79,3 +83,12 @@ def verify_account(auth : dict):
     )
     response.raise_for_status()
     return response.json()
+
+
+
+
+__all__ = [
+    "ZkillPhone", "ZPhone",
+    "ESIPhone", "ESI_Phone",
+    "verify_account", "redirect_to_sso", "request_token", "refresh_token"
+]

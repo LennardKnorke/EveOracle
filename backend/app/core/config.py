@@ -1,5 +1,4 @@
-# backend/esi_config.py
-
+# backend/app/core/config.py
 import os
 from pathlib import Path
 
@@ -11,15 +10,14 @@ APPLICATION_NAME = "EveOracle"
 class Settings(BaseSettings):
     ESI_CLIENT_ID : str
     ESI_CLIENT_SECRET : str
+    ESI_CALLBACK_URL : str
 
-    FRONTEND_PORT : int = 3000
-    FRONTEND_URL : str = "http://localhost"
+    FRONTEND_PORT : int = 5173
+    FRONTEND_URL : str = "localhost"
 
     DATABASE_URL : str
 
-    STATIC_PATH: str = "/app/data"
-
-    BACKEND_PORT: int = 8000
+    BACKEND_PORT: int = 8080
 
 
     class Config:
@@ -37,8 +35,7 @@ ESI_VERIFY_URL = "https://login.eveonline.com/oauth/verify"
 ESI_API_URL = "https://esi.evetech.net"
 ESI_IMG_URL = "https://images.evetech.net"
 
-# ZKILLBOARD
-ZKILL_API_URL = "https://zkillboard.com/api"
+
 
 
 

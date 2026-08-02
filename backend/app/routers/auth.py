@@ -1,15 +1,16 @@
-#backend/app/routers/auth.py
+# backend/app/routers/auth.py
+
 
 from datetime import datetime
 import secrets
 
-from fastapi import APIRouter, Depends, HTTPException, Header
-from fastapi.responses import RedirectResponse
+from fastapi import APIRouter, Depends, HTTPException, Header, Response, Cookie
+from fastapi.responses import RedirectResponse, JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.database import get_db, UserAccount
-from app.services.esi import redirect_to_sso, request_token, verify_account, refresh_token
+from app.services.esi_api_interface import redirect_to_sso, request_token, verify_account, refresh_token
 from app.core.config import settings
 
 
@@ -22,41 +23,60 @@ router = APIRouter(
     tags=["Authentication"]
 )
 
-@router.get("/auth/validate_session")
-async def validate_session(authorization : str = Header(...), db : AsyncSession = Depends(get_db)):
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Invalid authorization header")
-    
-    session_key = authorization.replace("Bearer ", "")
+@router.get("/auth/me")
+async def get_current_user(
+    response: Response,
+    session: str = Cookie(None, alias="session"),  # reads the HttpOnly cookie
+    db: AsyncSession = Depends(get_db)
+):
+    if not session:
+        raise HTTPException(status_code=401, detail="No session cookie")
 
-    stmt = select(UserAccount).where(UserAccount.session_key == session_key)
+    # Look up user by session_key
+    stmt = select(UserAccount).where(UserAccount.session_key == session)
     result = await db.execute(stmt)
-    existing_user = result.scalar_one_or_none()
+    user = result.scalar_one_or_none()
 
-    if existing_user:
-        today = datetime.today()
-        if existing_user.expires_at > today:
-            new_token = refresh_token(existing_user.refresh_token)
-            existing_user.access_token = new_token["access_token"]
-            existing_user.refresh_token = new_token["refresh_token"]
-            existing_user.expires_at = new_token["ExpiresOn"]
-            session_key = generate_session_token()
-            existing_user.session_key = session_key
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid session")
+
+    # Check if EVE token needs refresh
+    today = datetime.today()
+    new_session_key = None
+
+    if user.expires_at <= today:
+        try:
+            new_tokens = refresh_token(user.refresh_token)
+            user.access_token = new_tokens["access_token"]
+            user.refresh_token = new_tokens["refresh_token"]
+            user.expires_at = new_tokens["ExpiresOn"]
+            # Rotate session key
+            new_session_key = generate_session_token()
+            user.session_key = new_session_key
             await db.commit()
-            await db.refresh(existing_user)
+        except Exception:
+            # Refresh failed – invalidate session
+            user.session_key = None
+            await db.commit()
+            raise HTTPException(status_code=401, detail="Token refresh failed")
 
+    # If we rotated the session key, set a new cookie
+    if new_session_key:
+        response.set_cookie(
+            key="session",
+            value=new_session_key,
+            httponly=True,
+            secure=settings.ENV == "production",  # use config
+            samesite="lax",
+            path="/",
+        )
 
-        return {
-            "session_key" : session_key,
-            "char_name" : existing_user.char_name,
-            "char_id" : existing_user.char_id
-        }
-    else:
-        return {
-            "session_key" : None,
-            "char_name" : None,
-            "char_id" : None
-        }
+    # Return user info (no session key!)
+    return {
+        "char_name": user.char_name,
+        "id": user.id,
+        "authenticated": True
+    }
 
 
 
@@ -73,7 +93,7 @@ async def callback(code: str, db : AsyncSession = Depends(get_db)):
     auth = request_token(code)
     char = verify_account(auth)
 
-    char_id = char["CharacterID"]
+    id = char["CharacterID"]
     char_name = char["CharacterName"]
     char_hash = char["CharacterOwnerHash"]
     scopes = char['Scopes']
@@ -83,12 +103,13 @@ async def callback(code: str, db : AsyncSession = Depends(get_db)):
     expires_at = char["ExpiresOn"]
 
 
-    stmt = select(UserAccount).where(UserAccount.char_id == char_id)
+    stmt = select(UserAccount).where(UserAccount.id == id)
     result = await db.execute(stmt)
     existing_user = result.scalar_one_or_none()
     
     session_key = generate_session_token()
     if existing_user:
+        print(f"UPDATED USER:{char_name} - {id}")
         # Update existing user
         existing_user.char_name = char_name
         existing_user.char_hash = char_hash
@@ -102,10 +123,9 @@ async def callback(code: str, db : AsyncSession = Depends(get_db)):
 
         user = existing_user
     else:
-        # Create new user
-        print(f"NEW USER CREATED:{char_name} - {char_id}")
+        print(f"NEW USER CREATED:{char_name} - {id}")
         user = UserAccount(
-            char_id=char_id,
+            id=id,
             char_hash=char_hash,
             char_name=char_name,
             access_token=access_token,
@@ -115,12 +135,35 @@ async def callback(code: str, db : AsyncSession = Depends(get_db)):
             session_key=session_key
         )
         db.add(user)
-    
-    # Commit to database
+
     await db.commit()
     await db.refresh(user)
     
-    # Store user info in session or create JWT token for frontend
-    # For now, we'll return success
-    react_app_url = f"http://{settings.FRONTEND_URL}:{settings.FRONTEND_PORT}/?session_key={session_key}"
-    return RedirectResponse(react_app_url)
+    #react_app_url = f"http://{settings.FRONTEND_URL}:{settings.FRONTEND_PORT}/?session_key={session_key}"
+    react_app_url = f"http://{settings.FRONTEND_URL}:{settings.FRONTEND_PORT}"
+
+    response = RedirectResponse(react_app_url)
+    response.set_cookie(
+        key="session",
+        value=session_key,
+        httponly=True,
+        secure=settings.ENV == "production",
+        samesite="lax",
+        path="/",
+    )
+    return response
+
+
+@router.post("/auth/logout")
+async def logout(response: Response, session: str = Cookie(None, alias="session"), db: AsyncSession = Depends(get_db)):
+    if session:
+        stmt = select(UserAccount).where(UserAccount.session_key == session)
+        result = await db.execute(stmt)
+        user = result.scalar_one_or_none()
+        if user:
+            user.session_key = None
+            await db.commit()
+    
+    # Delete the cookie
+    response.delete_cookie("session", path="/")
+    return {"message": "Logged out"}

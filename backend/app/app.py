@@ -1,15 +1,14 @@
-# backend/app/api.py
+# backend/app/app.py
 from contextlib import asynccontextmanager
 from datetime import datetime
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-
 from app.database import Base, engine
 from app.core.config import settings
 
-#from routers import auth, user, esi_zkill
+from app.routers import auth
 from app.routers.scheduled_tasks import scheduler
 
 
@@ -42,13 +41,13 @@ app = FastAPI(
 )
 
 
-#origins = [
-#    "http://localhost:5173"
-#]
+origins = [
+    "http://localhost:5173"
+]
 
 app.add_middleware(
     CORSMiddleware,
-    #allow_origins=origins,
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
@@ -66,6 +65,6 @@ async def root() -> dict:
 
 
 
-#app.include_router(auth.router)
+app.include_router(auth.router)
 #app.include_router(user.router)
 #app.include_router(esi_zkill.router)

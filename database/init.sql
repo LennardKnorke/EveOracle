@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS useraccount (
+CREATE TABLE IF NOT EXISTS UserAccount (
     id BIGINT PRIMARY KEY,
     char_hash VARCHAR(255),
     char_name VARCHAR(255) NOT NULL UNIQUE,

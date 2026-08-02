@@ -1,4 +1,5 @@
-#backend/app/routers/zfetch.py
+# backend/app/routers/esi_zkill.py
+
 
 from pydantic import BaseModel
 
@@ -6,8 +7,8 @@ from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from database import UserAccount, get_db
-from services.esi import fetch_zkill_statistic, fetch_esi_charids, fetch_cooperation_standings
+from app.database import UserAccount, get_db
+from app.services.esi_api_interface import fetch_zkill_statistic, fetch_esi_charids, fetch_cooperation_standings
 
 
 router = APIRouter()

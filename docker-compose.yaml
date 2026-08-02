@@ -10,7 +10,6 @@ services:
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASSWORD}
 
-
     ports:
       - "3306:3306"
 
@@ -37,14 +36,15 @@ services:
       DATABASE_URL: mysql+aiomysql://${DB_USER}:${DB_PASSWORD}@mysql/${DB_DBNAME}
       ESI_CLIENT_ID: ${ESI_CLIENT_ID}
       ESI_CLIENT_SECRET: ${ESI_CLIENT_SECRET}
-
+      ESI_CALLBACK_URL: ${ESI_CALLBACK_URL}
 
     ports:
-      - "8000:8000"
+      - "8080:8080"
 
     volumes:
       - ./backend:/app
       - ./backend/static:/app/static
+
 
   frontend:
     build: ./frontend
@@ -54,10 +54,11 @@ services:
       - backend
 
     ports:
-      - "3000:3000"
+      - "5173:5173"
 
     volumes:
       - ./frontend:/app
+      - /app/node_modules
 
 
 volumes:
