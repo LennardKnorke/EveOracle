@@ -1,4 +1,4 @@
-// frontend/src/pages/EveOracleUI.tsx
+// frontend/src/pages/EveOracleUI/EveOracleUI.tsx
 
 import React, { useState } from 'react';
 import { fetch_zkill_char_stats, transformToCharacterStats, type CharacterStats } from "../api/zkill";

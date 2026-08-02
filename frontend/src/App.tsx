@@ -7,9 +7,10 @@ import EveOracleUI from "./pages/EveOracleUI";
 import ModelDojo from "./pages/ModelDojo";
 import DataDesignerUI from "./pages/DataDesigner";
 import Login from "./pages/Login";
+import Settings from "./pages/Settings";
+
 import Navbar from "./components/Navbar";
 import { useAuth } from "./auth";
-import Settings from "./pages/Settings";
 
 
 

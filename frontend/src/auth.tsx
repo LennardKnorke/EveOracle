@@ -1,11 +1,13 @@
 // frontend/src/api/auth.ts
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
+
 interface User {
     char_name: string;
     id: string;
 };
-  
+
+
 interface AuthContextType {
     user: User | null;
     loading: boolean;
@@ -13,9 +15,9 @@ interface AuthContextType {
     logout: () => Promise<void>;
 };
 
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const API_BASE = 'http://localhost:8080';
-
 
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -27,17 +29,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const res = await fetch(`${API_BASE}/auth/me`, {
                 credentials: 'include', // sends the cookie
             });
+
             if (res.ok) {
                 const data = await res.json();
                 setUser({ char_name: data.char_name, id: data.id });
             } else {
                 setUser(null);
-            }
+            };
         } catch {
             setUser(null);
         } finally {
             setLoading(false);
-        }
+        };
     };
   
     useEffect(() => {

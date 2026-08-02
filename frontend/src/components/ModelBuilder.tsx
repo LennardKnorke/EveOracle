@@ -1,24 +1,24 @@
 import React, { useState, useCallback, useRef } from 'react';
 import ReactFlow, {
-  addEdge,
-  type Connection,
-  type Edge,
-  type Node,
-  useNodesState,
-  useEdgesState,
-  Controls,
-  Background,
-  ReactFlowProvider,
-  Panel,
-  MarkerType,
-  Handle,
-  Position
+    addEdge,
+    type Connection,
+    type Edge,
+    type Node,
+    useNodesState,
+    useEdgesState,
+    Controls,
+    Background,
+    ReactFlowProvider,
+    Panel,
+    MarkerType,
+    Handle,
+    Position
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
 // --- Node Types (we'll just use a generic 'layerNode' for all) ---
 const layerNodeTypes = {
-  layerNode: LayerNode,
+    layerNode: LayerNode,
 };
 
 // The custom node component
