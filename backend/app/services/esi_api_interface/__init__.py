@@ -7,7 +7,9 @@ import string
 import urllib
 
 from app.core.config import settings, ESI_TOKEN_URL, ESI_AUTH_URL, SCOPES, ESI_VERIFY_URL
-from app.services.esi_api_interface import ESIPhone, ESI_Phone, ZkillPhone
+from app.services.esi_api_interface.esiphone import ESIPhone, ESI_Phone
+from app.services.esi_api_interface.zkillphone import ZkillPhone
+
 
 
 def refresh_token(refresh_token : string):
