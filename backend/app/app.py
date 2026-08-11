@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database import Base, engine
 from app.core.config import settings
 
-from app.routers import auth, char
+from app.routers import auth, char, dataset
 from app.routers.scheduled_tasks import scheduler
 
 
@@ -67,3 +67,4 @@ async def root() -> dict:
 
 app.include_router(auth.router)
 app.include_router(char.router)
+app.include_router(dataset.router)

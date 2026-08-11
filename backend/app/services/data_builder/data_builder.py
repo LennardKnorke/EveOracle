@@ -1,7 +1,8 @@
 
+from pathlib import Path
 
-
-
+dataset_dir = Path("static/datasets")
+dataset_dir.mkdir(exist_ok=True)
 
 class DataBuilder:
     _allowed_permutes = [ # No function yet, will be added later

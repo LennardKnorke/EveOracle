@@ -38,8 +38,7 @@ ESI_IMG_URL = "https://images.evetech.net"
 
 
 # SCOPES
-SCOPES_FILE = Path("static/esi_rights.txt")
 def load_scopes() -> list[str]:
-    with open(SCOPES_FILE) as f:
+    with open(Path("static/esi_rights.txt")) as f:
         return [line.strip() for line in f if line.strip()]
 SCOPES = load_scopes()
