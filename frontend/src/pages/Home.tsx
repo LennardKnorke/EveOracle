@@ -1,6 +1,6 @@
 // frontend/src/pages/Home.tsx
 
-import MenuCard from "../components/MenuCard";
+import MenuCard from "../components/Home/MenuCard";
 
 import "./Home.css";
 

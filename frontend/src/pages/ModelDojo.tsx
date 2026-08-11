@@ -1,6 +1,7 @@
 import React from 'react';
+import { apiClient } from "../api/client"
 import ModelBuilder from '../components/ModelBuilder';
-import './ModelDojo.css'; // optional
+import './ModelDojo.css';
 
 function ModelDojo() {
     return (

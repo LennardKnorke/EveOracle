@@ -1,6 +1,6 @@
 // frontend/src/api/auth.ts
 import React, { createContext, useContext, useEffect, useState } from 'react';
-
+import { apiClient } from './api/client'; 
 
 interface User {
     char_name: string;
@@ -26,16 +26,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
     const checkAuth = async () => {
         try {
-            const res = await fetch(`${API_BASE}/auth/me`, {
-                credentials: 'include', // sends the cookie
-            });
-
-            if (res.ok) {
-                const data = await res.json();
-                setUser({ char_name: data.char_name, id: data.id });
-            } else {
-                setUser(null);
-            };
+            const data = await apiClient<{ char_name: string; id: string }>('/auth/me');
+            setUser({ char_name: data.char_name, id: data.id });
         } catch {
             setUser(null);
         } finally {
@@ -45,6 +37,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
     useEffect(() => {
         checkAuth();
+        const handleUnauthorized = () => {
+            setUser(null);
+            // Optionally redirect to home or login
+            window.location.href = '/';
+        };
+        window.addEventListener('auth:unauthorized', handleUnauthorized);
+      
+        return () => {
+            window.removeEventListener('auth:unauthorized', handleUnauthorized);
+        };
     }, []);
   
     const login = () => {
@@ -52,13 +54,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   
     const logout = async () => {
-        await fetch(`${API_BASE}/auth/logout`, {
-            method: 'POST',
-            credentials: 'include',
-        });
-        setUser(null);
-        // optionally redirect to login
-        window.location.href = '/';
+        try {
+            await apiClient('/auth/logout', { method: 'POST' });
+        } catch {
+            // ignore errors on logout
+        } finally {
+            setUser(null);
+            window.location.href = '/';
+        }
     };
   
     return (

@@ -1,11 +1,11 @@
 # backend/app/core/config.py
-import os
-from pathlib import Path
 
+from pathlib import Path
 from pydantic_settings import BaseSettings
 
 
 APPLICATION_NAME = "EveOracle"
+
 
 class Settings(BaseSettings):
     ESI_CLIENT_ID : str
@@ -21,12 +21,11 @@ class Settings(BaseSettings):
 
     ENV : str = "development"
 
-
     class Config:
         env_file = ".env"
 
-settings = Settings()
 
+settings = Settings()
 
 
 ### URLS
@@ -36,9 +35,6 @@ ESI_VERIFY_URL = "https://login.eveonline.com/oauth/verify"
 
 ESI_API_URL = "https://esi.evetech.net"
 ESI_IMG_URL = "https://images.evetech.net"
-
-
-
 
 
 # SCOPES

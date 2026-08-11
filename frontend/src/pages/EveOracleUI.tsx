@@ -1,12 +1,78 @@
 // frontend/src/pages/EveOracleUI/EveOracleUI.tsx
 
-import React, { useState } from 'react';
-import { fetch_zkill_char_stats, transformToCharacterStats, type CharacterStats } from "../api/zkill";
+import React, { useEffect, useState } from 'react';
 import TeamManagerWindow from "../components/TeamManager";
 import MatchupDashboard from "../components/MatchupDashboard";
 import "./EveOracleUI.css";
+import { useAuth } from '../auth'
+import { apiClient } from '../api/client';
+
+
+export interface CharIdentifier {
+    char_name: string;
+    id: string|number;
+    corporation_id: string|number;
+    alliance_id: string|number;
+};
+
+export interface CharacterStats {
+    char: CharIdentifier;
+    stats: any; // Here the zkilldict is saved
+};
+
+function transformToCharacterStats(rawData: any): CharacterStats[] {
+    if (!rawData) return [];
+    const targetData = rawData.results !== undefined ? rawData.results : rawData;
+
+    const mapSingleEntry = (entry: any): CharacterStats => {        
+        const char: CharIdentifier = {
+            char_name: entry.name || '',
+            // Fallbacks handle camelCase or snake_case API conventions
+            id: entry.id || 0,
+            corporation_id: entry.corporationID || 0,
+            alliance_id: entry.allianceID || 0,
+        };
+
+        return {
+            char,
+            stats: entry.stats || null
+        };
+    };
+
+    // 2. If targetData is an Array, map over it directly
+    if (Array.isArray(targetData)) {
+        return targetData.map(mapSingleEntry);
+    }
+
+    // 3. If targetData is a Key/Value Dictionary object, iterate over its pairs
+    if (typeof targetData === 'object' && targetData !== null) {
+        return Object.entries(targetData).map(([_, value]: [string, any]) => {
+            // Map the value object using our helper
+            return mapSingleEntry(value);
+        });
+    }
+    return [];
+};
 
 function EveOracleUI() {
+    const { user } = useAuth();
+
+    async function fetchUserFleet(id : string) {
+        const fleet_team = await apiClient(`/char/currentFleet?char_id=${id}`);
+        console.log(fleet_team);
+    };
+    async function fetchCharacters(names : string[]) {
+        const data = await apiClient(`/char/stats`, {
+            method : 'POST',
+            body: JSON.stringify({char_names : names})
+        });
+        console.log(data);
+    };
+
+    useEffect(() => {
+        fetchUserFleet(user?.id || "");
+    });
+
     const [characterInput, setCharacterInput] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -14,6 +80,7 @@ function EveOracleUI() {
     const [allies, setAllies] = useState<CharacterStats[]>([]);
     const [enemies, setEnemies] = useState<CharacterStats[]>([]);
     const [neutrals, setNeutrals] = useState<CharacterStats[]>([]);
+        
 
     // Move character between columns
     const moveCharacter = (
@@ -66,7 +133,7 @@ function EveOracleUI() {
         setError(null);
 
         try {
-            const rawData = await fetch_zkill_char_stats(session_key, characters);
+            const rawData = await apiClient<number>('');
             const CharStats = transformToCharacterStats(rawData);
 
             const userCharName = localStorage.getItem('char_name');
@@ -149,7 +216,7 @@ function EveOracleUI() {
                         </button>
                         {error && <div className="error">{error}</div>}
                     </div>
-
+                    {/*
                     <div className="teammanager-area">
                         <TeamManagerWindow
                             allies={allies}
@@ -159,6 +226,7 @@ function EveOracleUI() {
                             onRemoveCharacter={removeCharacter}
                         />
                     </div>
+                    */}
                 </div>
 
                 {/* Bottom Row: Matchup Dashboard */}

@@ -1,9 +1,9 @@
 # backend/app/services/esi_api_interface/esiphone.py
 
 import requests
-
-import requests
 import string
+
+from fastapi import HTTPException
 
 from app.core.config import ESI_API_URL
 
@@ -104,9 +104,19 @@ class ESI_Phone:
             "Accept": "application/json",
         }
         response = requests.post(url, headers=headers, json=characters)
-        response.raise_for_status()
+        
+        print(response.status_code)
 
-        return response.json()
+        if response.status_code == 404:
+            error_msg = response.json().get('error', 'Unknown error')
+            if "not in a fleet" in error_msg.lower():
+                return {}
+            else:
+                raise HTTPException(response.status_code, error_msg)
+        elif response.status_code >=300:
+            raise HTTPException(response.status_code)
+        else:
+            return response.json()
 
 
     def fetch_fitting(self, char_id : str|int, access_token : str):
@@ -127,10 +137,10 @@ class ESI_Phone:
         return response.json()
 
 
-    def fetch_char_fleetinfo(self, char_id : int|str, access_token : str):
+    def fetch_char_fleetinfo(self, char_id : int|str, access_token : str) -> dict:
         """
         Get character fleet info
-        https://esi.evetech.net/characters/{character_id}/fleet
+        https://esi.evetech.net/characters/{character_id}/fleet/
         """
         url = f"{ESI_API_URL}/characters/{char_id}/fleet"
 
@@ -140,9 +150,18 @@ class ESI_Phone:
         }
 
         response = requests.get(url, headers=headers)
-        response.raise_for_status()
-
-        return response.json()
+        print(response.status_code)
+        
+        if response.status_code == 404:
+            error_msg = response.json().get('error', 'Unknown error')
+            if "not in a fleet" in error_msg.lower():
+                return {}
+            else:
+                raise HTTPException(response.status_code, error_msg)
+        elif response.status_code >=300:
+            raise HTTPException(response.status_code)
+        else:
+            return response.json()
 
     def fetch_fleetinfo(self, fleet_id :int|str, access_token : str):
         """
@@ -174,10 +193,17 @@ class ESI_Phone:
         }
 
         response = requests.get(url, headers=headers)
-        response.raise_for_status()
 
-        return response.json()
-    
+        if response.status_code == 404:
+            error_msg = response.json().get('error', 'Unknown error')
+            if error_msg == "The fleet does not exist or you don't have access to it!":
+                return []
+            else:
+                raise HTTPException(response.status_code, error_msg)
+        elif response.status_code >=300:
+            raise HTTPException(response.status_code)
+        else:
+            return response.json()
 
 
 ESIPhone = ESI_Phone()

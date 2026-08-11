@@ -5,6 +5,7 @@ from app.database.connection import engine
 from app.database.session import get_db, SessionLocal
 from app.database.base import Base
 
+
 __all__ = [
     "UserAccount",
     "engine",
