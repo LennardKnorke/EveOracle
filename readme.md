@@ -7,42 +7,34 @@
 
 EveOracle is an intelligence interface for the MMORPG **EVE Online**. It combines data from **zKillboard** and **EVE's ESI API** into a single interface, making it easier to assess pilots and fleets at a glance.
 
-### Current Features
-
-- Fetches player and corporation data from ESI.
-- Retrieves kill statistics from zKillboard.
-- Consolidates information into a single view.
-- Groups pilots by corporation and alliance.
-
 ### Planned Features
 
-- Historical data collection for machine learning datasets.
-- Dataset management tools.
-- Model training interface.
-- Combat outcome prediction for small-scale PvP engagements.
-- Improved React-based dashboard and visualization.
+- Overview of own fleet composition
+- Automatically update fleet
+- Interface to manage *Allies*, *Neutrals*, and *Enemies*.
+- Access Zkillboard data of players of interest
+- Ability to assign, or note ships that are not part of fleet (likely enemies)
+- Prediction Network for combat encounter
+
+### Next Steps:
+1. Button for Update Fleet - Fetch fleet information, players, and their ships
+2. Review localt chat paste to retrieve all other pilots data
+3. UI management to switch players between *Allies*, *Neutrals*, and *Enemies*.
+4. Review zkill api fetching for efficiency
 
 ## Tech Stack
 
 ### Backend
-
 - **FastAPI**
 
-#### Modules
-
-- `app` – Main backend application.
-- `esi` – Interface for ESI and zKillboard APIs.
-- `datadesigner` – Creates datasets from historical data.
-- `modelmanager` – Creates, deletes, and manages ML architectures.
-- `training` – Trains models using generated datasets.
-
 ### Frontend
-
 - **React**
 
 ### Database
+- **MySQL** - Manage users
 
-- **MySQL**
+### Worker
+- **Python** - Runs background tasks, saves historic data and updates prices. Write access to static data
 
 ## Project Status
 
