@@ -1,11 +1,11 @@
-# backend/app/services/esi_api_interface/esiphone.py
+# shared/esiphone.py
 
 import requests
 import string
 
 from fastapi import HTTPException
 
-from app.core.config import ESI_API_URL
+from shared.config import ESI_API_URL
 
 
 class ESI_Phone:

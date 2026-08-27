@@ -2,7 +2,7 @@
 
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from app.core.config import settings
+from shared.config import settings
 
 
 engine = create_async_engine(

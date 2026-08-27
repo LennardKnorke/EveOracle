@@ -1,4 +1,4 @@
-# backend/app/core/config.py
+# shared/config.py
 
 from pathlib import Path
 from pydantic_settings import BaseSettings
@@ -37,8 +37,9 @@ ESI_API_URL = "https://esi.evetech.net"
 ESI_IMG_URL = "https://images.evetech.net"
 
 
+STATIC_DIR = Path("/static")
 # SCOPES
 def load_scopes() -> list[str]:
-    with open(Path("static/esi_rights.txt")) as f:
+    with open(STATIC_DIR / "esi_rights.txt") as f:
         return [line.strip() for line in f if line.strip()]
 SCOPES = load_scopes()

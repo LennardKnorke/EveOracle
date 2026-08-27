@@ -7,9 +7,9 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from app.core.config import settings
+from shared.config import settings
 from app.database import get_db, UserAccount
-from app.services.esi_api_interface import (
+from shared.auth import (
     redirect_to_sso, request_token, verify_account, refresh_token
 )
 

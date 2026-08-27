@@ -1,8 +1,8 @@
 // frontend/src/components/MatchupDashboard.tsx
 
 import React, { useState, useEffect } from 'react';
-import { type CharacterStats } from '../api/zkill';
-import { getShipName, getShipData } from '../api/ships';
+import { type CharacterStats } from '../../api/type';
+import { getShipName, getShipData } from '../../api/type';
 import './MatchupDashboard.css';
 
 // Helper: format large numbers with "K", "M", "B", "T" suffixes

@@ -5,10 +5,13 @@ from fastapi import APIRouter, Depends, HTTPException, Header, Cookie, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
+
+from shared.config import settings
+from shared.esiphone import ESIPhone
+from shared.zkillphone import ZkillPhone
+
 from app.database import UserAccount, get_db
-from app.services.esi_api_interface import ESIPhone, ZkillPhone
-from app.core.config import settings
-from app.routers.auth import refresh_user_token, get_current_user_dep, get_valid_access_token
+from app.routers.auth import get_valid_access_token
 
 
 
@@ -42,8 +45,21 @@ async def get_currentFleet(char_id : str, access_token : str = Depends(get_valid
     
     return chars
 
-
+class CharStatsRequest(BaseModel):
+    char_names: list[str | int]
 @router.post("/char/stats")
-def get_char_stats(characters : list[str|int], response: Response, session: str = Cookie(None, alias="session"), db : AsyncSession = Depends(get_db)):
-    
-    return {}
+def get_char_stats(body: CharStatsRequest, response: Response, session: str = Cookie(None, alias="session"), db : AsyncSession = Depends(get_db)):
+    characters = body.char_names
+    char_ids = ESIPhone.fetch_esi_charids(characters)
+    chars = char_ids['characters']
+
+    print(chars)
+    results = {}
+    for entry in chars:
+        id = entry['id']
+        try:
+            
+            results[id] = ZkillPhone.fetch_statistics('characterID', id)
+        except:
+            results[id] = {}
+    return results

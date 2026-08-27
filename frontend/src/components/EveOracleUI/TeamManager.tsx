@@ -1,8 +1,9 @@
 // frontend/src/components/TeamManager.tsx
 
 import React, { useState } from 'react';
-import { type CharacterStats } from '../api/zkill';
+import { type CharacterStats } from '../../api/type';
 import './TeamManager.css';
+
 
 export type ConstellationColumnKey = 'allies' | 'enemies' | 'neutrals';
 

@@ -1,4 +1,4 @@
-# backend/app/services/esi_api_interface/__init__.py
+# shared/auth.py
 
 import base64
 import random
@@ -6,9 +6,7 @@ import requests
 import string
 import urllib
 
-from app.core.config import settings, ESI_TOKEN_URL, ESI_AUTH_URL, SCOPES, ESI_VERIFY_URL
-from app.services.esi_api_interface.esiphone import ESIPhone, ESI_Phone
-from app.services.esi_api_interface.zkillphone import ZkillPhone
+from shared.config import settings, ESI_TOKEN_URL, ESI_AUTH_URL, SCOPES, ESI_VERIFY_URL
 
 
 
@@ -81,12 +79,3 @@ def verify_account(auth : dict):
     )
     response.raise_for_status()
     return response.json()
-
-
-
-
-__all__ = [
-    "ZkillPhone",
-    "ESIPhone", "ESI_Phone",
-    "verify_account", "redirect_to_sso", "request_token", "refresh_token"
-]

@@ -1,4 +1,4 @@
-// frontend/src/api/auth.ts
+// frontend/src/auth.tsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { apiClient } from './api/client'; 
 
