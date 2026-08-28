@@ -4,9 +4,10 @@ from datetime import datetime
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.database import Base, engine
-from shared.config import settings
+from shared.config import settings, STATIC_DIR
 
 from app.routers import auth, char
 #from app.routers.scheduled_tasks import scheduler
@@ -49,6 +50,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
+
+if STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+else:
+    print(f"[WARN] Static directory not found at: {STATIC_DIR}")
 
 
 @app.get("/")

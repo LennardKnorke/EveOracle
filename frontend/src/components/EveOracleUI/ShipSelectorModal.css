@@ -1,0 +1,124 @@
+/* frontend/src/components/EveOracleUI/ShipSelectorModal.css */
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(3px);
+}
+
+.modal-content {
+    background: #181826;
+    border: 1px solid #2f2f45;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 440px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid #28283c;
+}
+
+.modal-header h4 {
+    margin: 0;
+    color: var(--text-h);
+    font-size: 1.05rem;
+}
+
+.modal-close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 4px;
+    margin: 0;
+}
+
+.modal-close-btn:hover {
+    color: #fff;
+}
+
+.modal-search-input {
+    margin: 12px 16px 8px;
+    background: #10101a;
+    border: 1px solid #2c2c3e;
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: #fff;
+    font-family: var(--sans);
+    font-size: 0.9rem;
+    outline: none;
+}
+
+.modal-search-input:focus {
+    border-color: var(--accent);
+}
+
+.modal-ship-list {
+    list-style: none;
+    margin: 0;
+    padding: 8px 12px 12px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.modal-ship-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    background: #202032;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.modal-ship-item:hover {
+    background: #2b2b44;
+}
+
+.modal-ship-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    background: #0f0f18;
+}
+
+.modal-ship-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-ship-name {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #e5e4e7;
+}
+
+.modal-ship-class {
+    font-size: 0.75rem;
+    color: var(--text);
+}
+
+.modal-no-results {
+    color: #666;
+    text-align: center;
+    padding: 16px 0;
+    font-style: italic;
+}

@@ -1,244 +1,338 @@
-// frontend/src/components/MatchupDashboard.tsx
+// frontend/src/components/MatchupDashboard/MatchupDashboard.tsx
 
-import React, { useState, useEffect } from 'react';
-import { type CharacterStats } from '../../api/type';
-import { getShipName, getShipData } from '../../api/type';
+import React, { useState, useEffect, useMemo } from 'react';
+import { type TeamToken, isW1, isW2, isW3 } from '../../api/type';
+import FleetCompositionSummary from './FleetCompositionSummary';
+import { getShipsDatabase } from '../../api/ships';
 import './MatchupDashboard.css';
 
-// Helper: format large numbers with "K", "M", "B", "T" suffixes
-function formatISK(value: number): string {
-    if (!value) return '0';
+// -------------------------------------------------------------------------
+// Helpers
+// -------------------------------------------------------------------------
+function formatISK(value?: number): string {
+    if (!value) return '0 ISK';
     const abs = Math.abs(value);
-    if (abs >= 1e12) return (value / 1e12).toFixed(1) + 'T';
-    if (abs >= 1e9) return (value / 1e9).toFixed(1) + 'B';
-    if (abs >= 1e6) return (value / 1e6).toFixed(1) + 'M';
-    if (abs >= 1e3) return (value / 1e3).toFixed(1) + 'K';
-    return value.toString();
+    if (abs >= 1e12) return (value / 1e12).toFixed(2) + 'T ISK';
+    if (abs >= 1e9) return (value / 1e9).toFixed(2) + 'B ISK';
+    if (abs >= 1e6) return (value / 1e6).toFixed(1) + 'M ISK';
+    if (abs >= 1e3) return (value / 1e3).toFixed(0) + 'K ISK';
+    return value.toLocaleString() + ' ISK';
 }
 
-function formatNumber(num: number): string {
-    if (!num) return '0';
+function formatNumber(num?: number): string {
+    if (!num && num !== 0) return '0';
     return num.toLocaleString();
 }
 
-// Helper: Get stats for the last week (from rankHistory.weekly or months)
-function getLastWeekStats(stats: any) {
-    // Try to get from rankHistory.weekly.all
-    const weekly = stats?.rankHistory?.weekly?.all;
-    if (weekly) {
-        const entries = Object.entries(weekly);
+function getWeeklyMetrics(stats: any) {
+    const weeklyMetrics = stats?.rankings?.weekly?.all?.metrics;
+    if (weeklyMetrics) {
+        return {
+            shipsDestroyed: weeklyMetrics.shipsDestroyed || 0,
+            shipsLost: weeklyMetrics.shipsLost || 0,
+            iskDestroyed: weeklyMetrics.iskDestroyed || 0,
+            iskLost: weeklyMetrics.iskLost || 0,
+        };
+    }
+    const weeklyObj = stats?.rankHistory?.weekly?.all;
+    if (weeklyObj) {
+        const entries = Object.values(weeklyObj);
         if (entries.length > 0) {
-            const latest = entries[entries.length - 1][1] as any;
-            const metrics = latest?.metrics || {};
+            const latest = entries[entries.length - 1] as any;
             return {
-                shipsDestroyed: metrics.shipsDestroyed || 0,
-                shipsLost: metrics.shipsLost || 0,
-                iskDestroyed: metrics.iskDestroyed || 0,
-                iskLost: metrics.iskLost || 0,
+                shipsDestroyed: latest?.metrics?.shipsDestroyed || 0,
+                shipsLost: latest?.metrics?.shipsLost || 0,
+                iskDestroyed: latest?.metrics?.iskDestroyed || 0,
+                iskLost: latest?.metrics?.iskLost || 0,
             };
         }
     }
-
-    // Fallback: get the most recent month from months
-    const months = stats?.months;
-    if (months) {
-        const entries = Object.entries(months);
-        if (entries.length > 0) {
-            const latest = entries[entries.length - 1][1] as any;
-            return {
-                shipsDestroyed: latest.shipsDestroyed || 0,
-                shipsLost: latest.shipsLost || 0,
-                iskDestroyed: latest.iskDestroyed || 0,
-                iskLost: latest.iskLost || 0,
-            };
-        }
-    }
-
     return { shipsDestroyed: 0, shipsLost: 0, iskDestroyed: 0, iskLost: 0 };
 }
 
-// Helper: Get top ship type (most kills) from stats
-function getTopShip(stats: any): string {
-    const topAllTime = stats?.topAllTime || [];
-    const shipData = topAllTime.find((item: any) => item.type === 'ship');
-    if (shipData?.data?.length > 0) {
-        // Return the ship type ID as a string for now; we could resolve names with a map later
-        return `Ship ID: ${shipData.data[0].shipTypeID}`;
+function getShipExperience(stats: any, shipId?: number | string | null) {
+    if (!shipId || !stats) return null;
+    const sId = Number(shipId);
+    const topShips = stats.topShips || [];
+    const recentShips = stats.recentShips || [];
+
+    const found =
+        topShips.find((s: any) => s.shipTypeID === sId) ||
+        recentShips.find((s: any) => s.shipTypeID === sId);
+
+    if (found) {
+        return {
+            kills: found.kills || 0,
+            losses: found.losses || 0,
+            appearances: found.appearances || 0,
+            isk: found.isk || 0,
+        };
     }
-    return '—';
+    return { kills: 0, losses: 0, appearances: 0, isk: 0 };
 }
 
+// -------------------------------------------------------------------------
+// Small Compact Card (W1, W2, W3)
+// -------------------------------------------------------------------------
 interface PlayerSmallCardProps {
-    character: CharacterStats;
+    token: TeamToken;
     onClick: () => void;
-    isExpanded: boolean;
 }
 
-export function PlayerSmallCard({ character, onClick, isExpanded }: PlayerSmallCardProps) {
-    const stats = character.stats || {};
-    const weekly = getLastWeekStats(stats);
-    const avgGangSize = stats.avgGangSize || 0;
+export function PlayerSmallCard({ token, onClick }: PlayerSmallCardProps) {
+    const { character, ship } = token;
 
-    const portraitUrl = `https://images.evetech.net/characters/${character.char.id}/portrait?size=64`;
-    const corpLogoUrl = `https://images.evetech.net/corporations/${character.char.corporation_id}/logo?size=32`;
-    const allianceLogoUrl = character.char.alliance_id
-        ? `https://images.evetech.net/alliances/${character.char.alliance_id}/logo?size=32`
-        : undefined;
+    // W3: Ship Only
+    if (isW3(token) && ship) {
+        return (
+            <div className="player-small-card card-w3" onClick={onClick}>
+                <div className="card-icons">
+                    <img
+                        src={`https://images.evetech.net/types/${ship.id}/icon?size=32`}
+                        alt={ship.name}
+                        className="card-ship-icon"
+                    />
+                </div>
+                <div className="card-info">
+                    <div className="card-name card-ship-name">{ship.name}</div>
+                    <div className="card-sub">{ship.shipClass || 'Unidentified Class'} • [Spotted Ship]</div>
+                </div>
+            </div>
+        );
+    }
+
+    const stats = character?.stats || {};
+    const weekly = getWeeklyMetrics(stats);
+    const danger = stats.dangerRatio ?? 0;
+    const avgGang = stats.avgGangSize ?? 0;
+    const shipExp = getShipExperience(stats, ship?.id);
 
     return (
-        <div className={`player-small-card ${isExpanded ? 'expanded' : ''}`} onClick={onClick}>
+        <div className={`player-small-card ${isW2(token) ? 'card-w2' : 'card-w1'}`} onClick={onClick}>
+            {/* Icons */}
             <div className="card-icons">
-                <img src={portraitUrl} alt={character.char.char_name} className="portrait" loading="lazy" />
-                <div className="corp-alliance-icons">
-                    <img src={corpLogoUrl} alt="Corporation" className="corp-icon" loading="lazy" />
-                    {allianceLogoUrl && (
-                        <img src={allianceLogoUrl} alt="Alliance" className="alliance-icon" loading="lazy" />
+                <img
+                    src={`https://images.evetech.net/characters/${character?.char_id}/portrait?size=64`}
+                    alt={character?.char_name}
+                    className="card-portrait"
+                    loading="lazy"
+                />
+                <div className="card-secondary-icons">
+                    {ship ? (
+                        <img
+                            src={`https://images.evetech.net/types/${ship.id}/icon?size=32`}
+                            alt={ship.name}
+                            className="card-ship-badge"
+                            title={ship.name}
+                        />
+                    ) : (
+                        character?.corporation_id && (
+                            <img
+                                src={`https://images.evetech.net/corporations/${character.corporation_id}/logo?size=32`}
+                                alt="Corp"
+                                className="card-corp-badge"
+                            />
+                        )
                     )}
                 </div>
             </div>
+
+            {/* Pilot / Ship Info */}
             <div className="card-info">
-                <div className="card-name">{character.char.char_name}</div>
-                <div className="card-stats">
-                    <span className="stat-item">
-                        <span className="stat-label">K/D (W):</span>
-                        <span className="stat-value kills">{formatNumber(weekly.shipsDestroyed)}</span>
-                        <span className="stat-separator">/</span>
-                        <span className="stat-value losses">{formatNumber(weekly.shipsLost)}</span>
+                <div className="card-header-row">
+                    <span className="card-name">{character?.char_name}</span>
+                    <span
+                        className={`danger-tag ${
+                            danger >= 60 ? 'danger-high' : danger >= 30 ? 'danger-med' : 'danger-low'
+                        }`}
+                    >
+                        {danger}% Danger
                     </span>
-                    <span className="stat-item">
-                        <span className="stat-label">ISK (W):</span>
-                        <span className="stat-value isk-kills">{formatISK(weekly.iskDestroyed)}</span>
-                        <span className="stat-separator">/</span>
-                        <span className="stat-value isk-losses">{formatISK(weekly.iskLost)}</span>
+                </div>
+
+                <div className="card-stats-row">
+                    <span className="stat-segment">
+                        <span className="stat-label">W:</span>
+                        <span className="stat-val kills">{weekly.shipsDestroyed}K</span> /
+                        <span className="stat-val losses">{weekly.shipsLost}L</span>
                     </span>
-                    <span className="stat-item">
-                        <span className="stat-label">Avg Gang:</span>
-                        <span className="stat-value">{avgGangSize.toFixed(1)}</span>
+
+                    <span className="stat-segment">
+                        <span className="stat-label">Gang:</span>
+                        <span className="stat-val">{avgGang.toFixed(0)}</span>
                     </span>
+
+                    {ship ? (
+                        <span className="stat-segment ship-tag">
+                            <span className="stat-label">{ship.name}:</span>
+                            <span className="stat-val">{shipExp ? `${shipExp.kills}k` : '0k'}</span>
+                        </span>
+                    ) : (
+                        <span className="stat-segment isk-tag">
+                            <span className="stat-val">{formatISK(stats.iskDestroyed || 0)}</span>
+                        </span>
+                    )}
                 </div>
             </div>
         </div>
     );
 }
 
+// -------------------------------------------------------------------------
+// Large Expanded Card for Pilots (W1 & W2)
+// -------------------------------------------------------------------------
 interface LargePlayerCardProps {
-    character: CharacterStats;
+    token: TeamToken;
     onClose: () => void;
 }
 
-export function LargePlayerCard({ character, onClose }: LargePlayerCardProps) {
-    const stats = character.stats || {};
-    const weekly = getLastWeekStats(stats);
-    const [topShips, setTopShips] = useState<Array<{ id: number; kills: number; name: string }>>([]);
-    const [topSystems, setTopSystems] = useState<Array<{ id: number; kills: number }>>([]);
-    const [monthEntries, setMonthEntries] = useState<Array<[string, any]>>([]);
-    
+export function LargePlayerCard({ token, onClose }: LargePlayerCardProps) {
+    const { character, ship } = token;
+    const stats = character?.stats || {};
+    const weekly = getWeeklyMetrics(stats);
+    const recentMetrics = stats?.rankings?.recent?.all?.metrics || {};
+    const shipExp = getShipExperience(stats, ship?.id);
+
+    const [shipsDb, setShipsDb] = useState<Record<string, any>>({});
+
     useEffect(() => {
-        // Extract top ships and resolve names
-        const topAllTime = stats?.topAllTime || [];
-        const shipData = topAllTime.find((item: any) => item.type === 'ship');
-        const rawShips = shipData?.data?.slice(0, 5) || [];
+        getShipsDatabase().then(setShipsDb);
+    }, []);
 
-        Promise.all(
-            rawShips.map(async (ship: any) => {
-                const name = await getShipName(ship.shipTypeID);
-                return { id: ship.shipTypeID, kills: ship.kills, name };
-            })
-        ).then(setTopShips);
+    // Top Ships
+    const topShipsList = useMemo(() => {
+        const list = stats.topShips || [];
+        return list.slice(0, 5).map((s: any) => ({
+            id: s.shipTypeID,
+            name: shipsDb[String(s.shipTypeID)]?.name || `Ship ${s.shipTypeID}`,
+            kills: s.kills || 0,
+            losses: s.losses || 0,
+            isk: s.isk || 0,
+        }));
+    }, [stats, shipsDb]);
 
-        // Systems (no name resolution needed for now)
-        const systemData = topAllTime.find((item: any) => item.type === 'system');
-        setTopSystems(systemData?.data?.slice(0, 5) || []);
+    // Top Systems
+    const topSystemsList = useMemo(() => {
+        const topLists = stats.topLists || [];
+        const systems = topLists.find((t: any) => t.type === 'solarSystem')?.values || [];
+        if (systems.length > 0) return systems.slice(0, 4);
 
-        // Months
-        const months = stats?.months || {};
-        setMonthEntries(Object.entries(months).slice(-3).reverse());
+        const topAllTime = stats.topAllTime || [];
+        const allTimeSys = topAllTime.find((t: any) => t.type === 'system')?.data || [];
+        return allTimeSys.slice(0, 4).map((s: any) => ({
+            solarSystemName: `System ${s.solarSystemID}`,
+            kills: s.kills,
+        }));
     }, [stats]);
 
     return (
         <div className="large-player-card">
-            <button className="close-button" onClick={onClose}>✕</button>
-            <div className="large-card-header">
+            <button className="close-expanded-btn" onClick={onClose} title="Collapse to list">✕</button>
+
+            {/* Header / Identity */}
+            <div className="large-header">
                 <img
-                    src={`https://images.evetech.net/characters/${character.char.id}/portrait?size=128`}
-                    alt={character.char.char_name}
+                    src={`https://images.evetech.net/characters/${character?.char_id}/portrait?size=128`}
+                    alt={character?.char_name}
                     className="large-portrait"
                 />
-                <div className="large-header-info">
-                    <h2>{character.char.char_name}</h2>
-                    <p>Corporation: {character.char.corporation_id}</p>
-                    {character.char.alliance_id && (
-                        <p>Alliance: {character.char.alliance_id}</p>
-                    )}
-                </div>
-            </div>
-
-            <div className="large-stats-grid">
-                <div className="stat-group">
-                    <h4>All-Time</h4>
-                    <div className="stat-row">
-                        <span>Kills: <strong>{formatNumber(stats.shipsDestroyed || 0)}</strong></span>
-                        <span>Losses: <strong>{formatNumber(stats.shipsLost || 0)}</strong></span>
-                    </div>
-                    <div className="stat-row">
-                        <span>ISK Destroyed: <strong>{formatISK(stats.iskDestroyed || 0)}</strong></span>
-                        <span>ISK Lost: <strong>{formatISK(stats.iskLost || 0)}</strong></span>
-                    </div>
-                    <div className="stat-row">
-                        <span>Solo Kills: <strong>{formatNumber(stats.soloKills || 0)}</strong></span>
-                        <span>Solo Losses: <strong>{formatNumber(stats.soloLosses || 0)}</strong></span>
-                    </div>
-                    <div className="stat-row">
-                        <span>Avg Gang Size: <strong>{(stats.avgGangSize || 0).toFixed(1)}</strong></span>
-                        <span>Danger Ratio: <strong>{stats.dangerRatio || 0}</strong></span>
-                    </div>
-                </div>
-
-                <div className="stat-group">
-                    <h4>Last Week</h4>
-                    <div className="stat-row">
-                        <span>Kills: <strong>{formatNumber(weekly.shipsDestroyed)}</strong></span>
-                        <span>Losses: <strong>{formatNumber(weekly.shipsLost)}</strong></span>
-                    </div>
-                    <div className="stat-row">
-                        <span>ISK Destroyed: <strong>{formatISK(weekly.iskDestroyed)}</strong></span>
-                        <span>ISK Lost: <strong>{formatISK(weekly.iskLost)}</strong></span>
+                <div className="large-identity">
+                    <h2>{character?.char_name}</h2>
+                    <div className="large-badges">
+                        {character?.corporation_id && (
+                            <span className="corp-badge">Corp: {character.corporation_id}</span>
+                        )}
+                        {character?.alliance_id && (
+                            <span className="alliance-badge">Alliance: {character.alliance_id}</span>
+                        )}
+                        {stats?.info?.security_status !== undefined && (
+                            <span className="sec-status-badge">Sec: {stats.info.security_status.toFixed(1)}</span>
+                        )}
                     </div>
                 </div>
             </div>
 
-            <div className="large-top-lists">
-                <div className="top-list">
-                    <h4>Top Ships</h4>
+            {/* Active Ship Dossier (W2) */}
+            {ship && (
+                <div className="active-ship-dossier">
+                    <div className="dossier-header">
+                        <img
+                            src={`https://images.evetech.net/types/${ship.id}/icon?size=32`}
+                            alt={ship.name}
+                            className="dossier-ship-icon"
+                        />
+                        <div>
+                            <h4>Active Ship: {ship.name}</h4>
+                            <span className="dossier-class">{ship.shipClass || 'Combat Vessel'}</span>
+                        </div>
+                    </div>
+                    <div className="dossier-stats-grid">
+                        <div>Kills in Hull: <strong>{shipExp?.kills ?? 0}</strong></div>
+                        <div>Losses: <strong>{shipExp?.losses ?? 0}</strong></div>
+                        <div>Hull ISK Destroyed: <strong>{formatISK(shipExp?.isk || 0)}</strong></div>
+                    </div>
+                </div>
+            )}
+
+            {/* Combat Metrics Grid */}
+            <div className="metrics-grid">
+                {/* All-Time */}
+                <div className="metric-box">
+                    <h5>All-Time Record</h5>
+                    <div className="metric-row"><span>Kills / Losses:</span> <strong>{formatNumber(stats.shipsDestroyed)} / {formatNumber(stats.shipsLost)}</strong></div>
+                    <div className="metric-row"><span>ISK Destroyed:</span> <strong className="green">{formatISK(stats.iskDestroyed)}</strong></div>
+                    <div className="metric-row"><span>ISK Lost:</span> <strong className="red">{formatISK(stats.iskLost)}</strong></div>
+                    <div className="metric-row"><span>Solo K / L:</span> <strong>{formatNumber(stats.soloKills)} / {formatNumber(stats.soloLosses)}</strong></div>
+                    <div className="metric-row"><span>Danger Rating:</span> <strong>{stats.dangerRatio || 0}%</strong></div>
+                    <div className="metric-row"><span>Avg Gang Size:</span> <strong>{(stats.avgGangSize || 0).toFixed(1)}</strong></div>
+                </div>
+
+                {/* Recent / Weekly */}
+                <div className="metric-box">
+                    <h5>Recent & Weekly</h5>
+                    <div className="metric-row"><span>Weekly Kills:</span> <strong>{weekly.shipsDestroyed}</strong></div>
+                    <div className="metric-row"><span>Weekly Losses:</span> <strong>{weekly.shipsLost}</strong></div>
+                    <div className="metric-row"><span>Weekly ISK:</span> <strong className="green">{formatISK(weekly.iskDestroyed)}</strong></div>
+                    <div className="metric-row"><span>Last 30d Kills:</span> <strong>{recentMetrics.shipsDestroyed || 0}</strong></div>
+                    <div className="metric-row"><span>Last 30d Losses:</span> <strong>{recentMetrics.shipsLost || 0}</strong></div>
+                    <div className="metric-row"><span>Last 30d ISK:</span> <strong className="green">{formatISK(recentMetrics.iskDestroyed || 0)}</strong></div>
+                </div>
+            </div>
+
+            {/* Top Ships Flown */}
+            <div className="top-lists-section">
+                <div className="top-list-block">
+                    <h5>Top Ships Flown</h5>
                     <ul>
-                        {topShips.map((ship) => (
-                            <li key={ship.id}>
-                                {ship.name} — {ship.kills} kills
+                        {topShipsList.map((s) => (
+                            <li key={s.id}>
+                                <img
+                                    src={`https://images.evetech.net/types/${s.id}/icon?size=32`}
+                                    alt={s.name}
+                                    className="list-ship-icon"
+                                    onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                                />
+                                <div className="list-ship-info">
+                                    <span>{s.name}</span>
+                                    <small>{s.kills} Kills ({formatISK(s.isk)})</small>
+                                </div>
                             </li>
                         ))}
-                        {topShips.length === 0 && <li>No data</li>}
+                        {topShipsList.length === 0 && <li>No ship history available</li>}
                     </ul>
                 </div>
-                <div className="top-list">
-                    <h4>Top Systems</h4>
+
+                {/* Top Systems */}
+                <div className="top-list-block">
+                    <h5>Frequent Systems</h5>
                     <ul>
-                        {topSystems.map((system: any) => (
-                            <li key={system.solarSystemID}>
-                                System {system.solarSystemID} — {system.kills} kills
+                        {topSystemsList.map((sys: any, idx: number) => (
+                            <li key={idx}>
+                                <span className="sys-name">📍 {sys.solarSystemName || `System ${sys.solarSystemID}`}</span>
+                                <small>{sys.kills} kills</small>
                             </li>
                         ))}
-                        {topSystems.length === 0 && <li>No data</li>}
-                    </ul>
-                </div>
-                <div className="top-list">
-                    <h4>Recent Months</h4>
-                    <ul>
-                        {monthEntries.map(([month, data]: [string, any]) => (
-                            <li key={month}>
-                                {month}: {data.shipsDestroyed || 0}K / {data.shipsLost || 0}L
-                            </li>
-                        ))}
-                        {monthEntries.length === 0 && <li>No data</li>}
+                        {topSystemsList.length === 0 && <li>No system activity recorded</li>}
                     </ul>
                 </div>
             </div>
@@ -246,70 +340,123 @@ export function LargePlayerCard({ character, onClose }: LargePlayerCardProps) {
     );
 }
 
+// -------------------------------------------------------------------------
+// Large Card for W3 (Ship Only)
+// -------------------------------------------------------------------------
+export function LargeShipCard({ token, onClose }: { token: TeamToken; onClose: () => void }) {
+    const { ship } = token;
+    return (
+        <div className="large-player-card large-ship-only-card">
+            <button className="close-expanded-btn" onClick={onClose}>✕</button>
+            <div className="large-header">
+                <img
+                    src={`https://images.evetech.net/types/${ship?.id}/icon?size=64`}
+                    alt={ship?.name}
+                    className="large-ship-img"
+                />
+                <div className="large-identity">
+                    <h2>{ship?.name}</h2>
+                    <div className="large-badges">
+                        <span className="ship-class-badge">{ship?.shipClass || 'Combat Ship'}</span>
+                        {ship?.faction && <span className="faction-badge">{ship.faction}</span>}
+                    </div>
+                </div>
+            </div>
+            <p className="ship-only-note">
+                Spotted ship with no assigned pilot. Link a pilot to view killboard combat telemetry.
+            </p>
+        </div>
+    );
+}
+
+// -------------------------------------------------------------------------
+// Main Matchup Dashboard Container
+// -------------------------------------------------------------------------
 interface MatchupDashboardProps {
-    allies: CharacterStats[];
-    enemies: CharacterStats[];
+    allies: TeamToken[];
+    enemies: TeamToken[];
 }
 
 export function MatchupDashboard({ allies, enemies }: MatchupDashboardProps) {
-    // Track which character is expanded in each column (by id)
-    const [expandedAllies, setExpandedAllies] = useState<Set<number>>(new Set());
-    const [expandedEnemies, setExpandedEnemies] = useState<Set<number>>(new Set());
+    const [expandedAllyId, setExpandedAllyId] = useState<string | null>(null);
+    const [expandedEnemyId, setExpandedEnemyId] = useState<string | null>(null);
 
-    const toggleExpand = (charId: number, column: 'allies' | 'enemies') => {
-        if (column === 'allies') {
-            const newSet = new Set(expandedAllies);
-            if (newSet.has(charId)) {
-                newSet.delete(charId);
-            } else {
-                newSet.add(charId);
-            }
-            setExpandedAllies(newSet);
-        } else {
-            const newSet = new Set(expandedEnemies);
-            if (newSet.has(charId)) {
-                newSet.delete(charId);
-            } else {
-                newSet.add(charId);
-            }
-            setExpandedEnemies(newSet);
-        }
+    // Filter by shipClass per column
+    const [allyClassFilter, setAllyClassFilter] = useState<string | null>(null);
+    const [enemyClassFilter, setEnemyClassFilter] = useState<string | null>(null);
+
+    const toggleAlly = (id: string) => {
+        setExpandedAllyId((prev) => (prev === id ? null : id));
     };
 
-    const renderColumn = (items: CharacterStats[], column: 'allies' | 'enemies', expandedSet: Set<number>) => {
-        if (items.length === 0) {
+    const toggleEnemy = (id: string) => {
+        setExpandedEnemyId((prev) => (prev === id ? null : id));
+    };
+
+    const filterTokens = (tokens: TeamToken[], classFilter: string | null) => {
+        if (!classFilter) return tokens;
+        if (classFilter === 'Unknown') {
+            return tokens.filter(isW1);
+        }
+        return tokens.filter((t) => t.ship && t.ship.shipClass === classFilter);
+    };
+
+    const filteredAllies = useMemo(() => filterTokens(allies, allyClassFilter), [allies, allyClassFilter]);
+    const filteredEnemies = useMemo(() => filterTokens(enemies, enemyClassFilter), [enemies, enemyClassFilter]);
+
+    const renderColumn = (
+        tokens: TeamToken[],
+        filteredList: TeamToken[],
+        expandedId: string | null,
+        classFilter: string | null,
+        onSetClassFilter: (shipClass: string | null) => void,
+        onToggle: (id: string) => void,
+        onClose: () => void
+    ) => {
+        if (tokens.length === 0) {
             return (
                 <div className="dashboard-column empty">
-                    <p>No characters in this column.</p>
+                    <p>No pilots or ships in this column.</p>
                 </div>
             );
         }
 
-        // If exactly one item is expanded, show the LargePlayerCard for that item
-        const expandedItem = items.find(item => expandedSet.has(item.char.id as number));
-        if (expandedItem) {
+        const expandedToken = tokens.find((t) => t.id === expandedId);
+        if (expandedToken) {
             return (
                 <div className="dashboard-column expanded">
-                    <LargePlayerCard
-                        character={expandedItem}
-                        onClose={() => toggleExpand(expandedItem.char.id as number, column)}
-                    />
+                    {isW3(expandedToken) ? (
+                        <LargeShipCard token={expandedToken} onClose={onClose} />
+                    ) : (
+                        <LargePlayerCard token={expandedToken} onClose={onClose} />
+                    )}
                 </div>
             );
         }
 
-        // Otherwise, show the list of small cards
         return (
             <div className="dashboard-column list">
+                {/* Fleet Composition Summary by shipClass */}
+                <FleetCompositionSummary
+                    tokens={tokens}
+                    selectedShipClass={classFilter}
+                    onSelectShipClass={onSetClassFilter}
+                />
+
+                {/* Filtered Cards List */}
                 <div className="column-scroll">
-                    {items.map((char) => (
+                    {filteredList.map((token) => (
                         <PlayerSmallCard
-                            key={char.char.id}
-                            character={char}
-                            onClick={() => toggleExpand(char.char.id as number, column)}
-                            isExpanded={false}
+                            key={token.id}
+                            token={token}
+                            onClick={() => onToggle(token.id)}
                         />
                     ))}
+                    {filteredList.length === 0 && (
+                        <div className="dashboard-column empty">
+                            <p>No pilots match this ship class filter.</p>
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -318,13 +465,42 @@ export function MatchupDashboard({ allies, enemies }: MatchupDashboardProps) {
     return (
         <div className="matchup-dashboard">
             <div className="dashboard-columns">
+                {/* Allies Column */}
                 <div className="column-wrapper allies-column">
-                    <h3>Allies ({allies.length})</h3>
-                    {renderColumn(allies, 'allies', expandedAllies)}
+                    <div className="column-top-bar allies-bar">
+                        <h3>Allies ({allies.length})</h3>
+                        {expandedAllyId && (
+                            <button className="back-btn" onClick={() => setExpandedAllyId(null)}>← Back to list</button>
+                        )}
+                    </div>
+                    {renderColumn(
+                        allies,
+                        filteredAllies,
+                        expandedAllyId,
+                        allyClassFilter,
+                        setAllyClassFilter,
+                        toggleAlly,
+                        () => setExpandedAllyId(null)
+                    )}
                 </div>
+
+                {/* Enemies Column */}
                 <div className="column-wrapper enemies-column">
-                    <h3>Enemies ({enemies.length})</h3>
-                    {renderColumn(enemies, 'enemies', expandedEnemies)}
+                    <div className="column-top-bar enemies-bar">
+                        <h3>Enemies ({enemies.length})</h3>
+                        {expandedEnemyId && (
+                            <button className="back-btn" onClick={() => setExpandedEnemyId(null)}>← Back to list</button>
+                        )}
+                    </div>
+                    {renderColumn(
+                        enemies,
+                        filteredEnemies,
+                        expandedEnemyId,
+                        enemyClassFilter,
+                        setEnemyClassFilter,
+                        toggleEnemy,
+                        () => setExpandedEnemyId(null)
+                    )}
                 </div>
             </div>
         </div>

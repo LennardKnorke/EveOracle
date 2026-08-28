@@ -1,4 +1,40 @@
 .input-area {
-    flex: 1 1 280px;
-    min-width: 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.input-label {
+    font-size: 0.85rem;
+    color: var(--text);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.character-textarea {
+    width: 100%;
+    min-height: 120px;
+    background: #181824;
+    color: #e5e4e7;
+    border: 1px solid #2d2d3f;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    line-height: 1.4;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.character-textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-bg);
+}
+
+.character-textarea:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }

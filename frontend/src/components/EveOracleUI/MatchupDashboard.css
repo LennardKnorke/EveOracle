@@ -1,17 +1,18 @@
-/* frontend/src/components/MatchupDashboard.css */
+/* frontend/src/components/MatchupDashboard/MatchupDashboard.css */
 
 .matchup-dashboard {
     width: 100%;
-    height: 500px; /* Fixed height */
-    background: #1a1a2e;
+    height: 540px;
+    background: #14141e;
+    border: 1px solid #222232;
     border-radius: 8px;
-    padding: 0.5rem;
+    padding: 1rem;
     overflow: hidden;
 }
 
 .dashboard-columns {
     display: flex;
-    gap: 1rem;
+    gap: 1.25rem;
     height: 100%;
 }
 
@@ -19,66 +20,58 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    min-height: 0; /* Allows flex children to shrink */
+    min-height: 0;
 }
 
-.column-wrapper h3 {
-    color: #eee;
-    margin: 0 0 0.5rem 0;
-    padding: 0 0.5rem;
-    font-size: 1rem;
-    text-align: center;
-    border-bottom: 1px solid #333;
-    padding-bottom: 0.25rem;
-    flex-shrink: 0;
+.column-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 2px solid #28283c;
+}
+
+.column-top-bar h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-h);
+}
+
+.allies-bar {
+    border-color: #3b82f6;
+}
+
+.enemies-bar {
+    border-color: #ef4444;
+}
+
+.back-btn {
+    background: #252538;
+    color: #e5e4e7;
+    border: 1px solid #3d3d58;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    margin: 0;
+}
+
+.back-btn:hover {
+    background: #33334c;
 }
 
 .dashboard-column {
     flex: 1;
-    background: #242438;
+    background: #181824;
+    border: 1px solid #252538;
     border-radius: 6px;
-    padding: 0.5rem;
+    padding: 0.6rem;
     overflow: hidden;
     min-height: 0;
-}
-
-.dashboard-column.list {
     display: flex;
     flex-direction: column;
-}
-
-.column-scroll {
-    flex: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    padding-right: 4px;
-}
-
-/* Scrollbar styling */
-.column-scroll::-webkit-scrollbar {
-    width: 4px;
-}
-
-.column-scroll::-webkit-scrollbar-track {
-    background: #1a1a2e;
-}
-
-.column-scroll::-webkit-scrollbar-thumb {
-    background: #444;
-    border-radius: 4px;
-}
-
-.column-scroll::-webkit-scrollbar-thumb:hover {
-    background: #666;
-}
-
-.dashboard-column.empty {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #666;
 }
 
 .dashboard-column.expanded {
@@ -86,154 +79,174 @@
     overflow-y: auto;
 }
 
-/* PlayerSmallCard */
+.dashboard-column.empty {
+    align-items: center;
+    justify-content: center;
+    color: #55556a;
+    font-style: italic;
+    font-size: 0.85rem;
+}
+
+.column-scroll {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    padding-right: 4px;
+}
+
+/* Small Cards */
 .player-small-card {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    background: #2a2a3e;
-    padding: 0.5rem 0.75rem;
-    border-radius: 4px;
+    gap: 0.6rem;
+    background: #1f1f2e;
+    border: 1px solid #2a2a3e;
+    border-radius: 6px;
+    padding: 6px 8px;
     cursor: pointer;
-    transition: background 0.15s ease, transform 0.1s ease;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
     flex-shrink: 0;
-    border: 1px solid transparent;
 }
 
 .player-small-card:hover {
-    background: #3a3a5a;
-    border-color: #555;
+    background: #26263b;
+    border-color: #444460;
     transform: translateX(2px);
 }
 
-.player-small-card.expanded {
-    background: #3a3a5a;
-    border-color: #ffd700;
+.card-w1 {
+    border-left: 3px solid #9ca3af;
+}
+.card-w2 {
+    border-left: 3px solid #10b981;
+}
+.card-w3 {
+    border-left: 3px solid #f59e0b;
 }
 
 .card-icons {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 4px;
     flex-shrink: 0;
 }
 
-.card-icons .portrait {
-    width: 36px;
-    height: 36px;
+.card-portrait {
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    border: 2px solid #444;
+    background: #0f0f18;
     object-fit: cover;
-    background: #111;
 }
 
-.corp-alliance-icons {
+.card-secondary-icons {
     display: flex;
     flex-direction: column;
     gap: 2px;
 }
 
-.corp-alliance-icons .corp-icon {
-    width: 16px;
-    height: 16px;
+.card-ship-badge,
+.card-corp-badge {
+    width: 20px;
+    height: 20px;
     border-radius: 3px;
-    border: 1px solid #555;
-    background: #111;
+    background: #0f0f18;
     object-fit: cover;
 }
 
-.corp-alliance-icons .alliance-icon {
-    width: 16px;
-    height: 16px;
-    border-radius: 3px;
-    border: 1px solid #555;
-    background: #111;
+.card-ship-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    background: #0f0f18;
     object-fit: cover;
 }
 
 .card-info {
     flex: 1;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.card-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
 }
 
 .card-name {
-    color: #eee;
-    font-weight: bold;
+    color: #e5e4e7;
     font-size: 0.85rem;
+    font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.card-stats {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    font-size: 0.7rem;
-    margin-top: 2px;
+.card-ship-name {
+    color: #60a5fa;
 }
 
-.stat-item {
+.card-sub {
+    font-size: 0.72rem;
+    color: #9ca3af;
+}
+
+.danger-tag {
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+.danger-high { color: #f87171; background: rgba(239, 68, 68, 0.15); }
+.danger-med { color: #fbbf24; background: rgba(251, 191, 36, 0.15); }
+.danger-low { color: #34d399; background: rgba(52, 211, 153, 0.15); }
+
+.card-stats-row {
     display: flex;
-    align-items: center;
+    gap: 8px;
+    font-size: 0.72rem;
+    color: #9ca3af;
+    flex-wrap: nowrap;
+    overflow: hidden;
+}
+
+.stat-segment {
+    display: flex;
     gap: 2px;
-    color: #aaa;
+    white-space: nowrap;
 }
 
-.stat-label {
-    color: #888;
-}
+.stat-label { color: #6b7280; }
+.stat-val.kills { color: #34d399; }
+.stat-val.losses { color: #f87171; }
+.ship-tag .stat-val { color: #60a5fa; }
+.isk-tag .stat-val { color: #fbbf24; }
 
-.stat-value.kills {
-    color: #4caf50;
-}
-
-.stat-value.losses {
-    color: #f44336;
-}
-
-.stat-value.isk-kills {
-    color: #4caf50;
-}
-
-.stat-value.isk-losses {
-    color: #f44336;
-}
-
-.stat-separator {
-    color: #555;
-    margin: 0 1px;
-}
-
-/* LargePlayerCard */
+/* Large Expanded Card */
 .large-player-card {
     padding: 1rem;
-    background: #1e1e32;
+    background: #181826;
     height: 100%;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
     position: relative;
 }
 
-.large-player-card::-webkit-scrollbar {
-    width: 4px;
-}
-
-.large-player-card::-webkit-scrollbar-track {
-    background: #1a1a2e;
-}
-
-.large-player-card::-webkit-scrollbar-thumb {
-    background: #444;
-    border-radius: 4px;
-}
-
-.close-button {
-    position: sticky;
-    top: 0;
-    float: right;
-    background: #e94560;
-    color: white;
-    border: none;
+.close-expanded-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.4);
     border-radius: 50%;
     width: 28px;
     height: 28px;
@@ -242,143 +255,200 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 10;
+    margin: 0;
 }
 
-.close-button:hover {
-    background: #c73652;
+.close-expanded-btn:hover {
+    background: #ef4444;
+    color: #fff;
 }
 
-.large-card-header {
+.large-header {
     display: flex;
-    gap: 1rem;
     align-items: center;
-    margin-bottom: 1rem;
+    gap: 1rem;
 }
 
 .large-portrait {
-    width: 64px;
-    height: 64px;
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
-    border: 2px solid #ffd700;
-    object-fit: cover;
-    background: #111;
-    flex-shrink: 0;
+    border: 2px solid var(--accent);
+    background: #0f0f18;
 }
 
-.large-header-info h2 {
-    color: #eee;
-    margin: 0;
-    font-size: 1.2rem;
-}
-
-.large-header-info p {
-    color: #aaa;
-    margin: 2px 0;
-    font-size: 0.8rem;
-}
-
-.large-stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
-
-.stat-group {
-    background: #2a2a3e;
-    padding: 0.75rem;
+.large-ship-img {
+    width: 56px;
+    height: 56px;
     border-radius: 6px;
+    background: #0f0f18;
 }
 
-.stat-group h4 {
-    color: #ccc;
-    margin: 0 0 0.5rem 0;
-    font-size: 0.85rem;
-    border-bottom: 1px solid #333;
-    padding-bottom: 0.25rem;
+.large-identity h2 {
+    margin: 0 0 4px 0;
+    font-size: 1.15rem;
+    color: var(--text-h);
 }
 
-.stat-row {
+.large-badges {
     display: flex;
-    justify-content: space-between;
-    padding: 2px 0;
-    color: #aaa;
-    font-size: 0.8rem;
+    gap: 6px;
+    flex-wrap: wrap;
+    font-size: 0.72rem;
 }
 
-.stat-row strong {
-    color: #eee;
+.corp-badge,
+.alliance-badge,
+.sec-status-badge,
+.ship-class-badge,
+.faction-badge {
+    background: #232336;
+    color: #b0b0c2;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid #33334d;
 }
 
-.large-top-lists {
+/* Active Ship Dossier */
+.active-ship-dossier {
+    background: #12121c;
+    border: 1px solid #28283e;
+    border-radius: 6px;
+    padding: 8px 12px;
+}
+
+.dossier-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.dossier-ship-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+}
+
+.dossier-header h4 {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #60a5fa;
+}
+
+.dossier-class {
+    font-size: 0.72rem;
+    color: var(--text);
+}
+
+.dossier-stats-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-}
-
-.top-list {
-    background: #2a2a3e;
-    padding: 0.75rem;
-    border-radius: 6px;
-}
-
-.top-list h4 {
-    color: #ccc;
-    margin: 0 0 0.5rem 0;
-    font-size: 0.85rem;
-    border-bottom: 1px solid #333;
-    padding-bottom: 0.25rem;
-}
-
-.top-list ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.top-list li {
-    color: #aaa;
+    gap: 6px;
     font-size: 0.75rem;
+    color: #a8a8b8;
+}
+
+/* Metrics Grid */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.metric-box {
+    background: #1f1f2e;
+    border: 1px solid #28283c;
+    border-radius: 6px;
+    padding: 10px;
+}
+
+.metric-box h5 {
+    margin: 0 0 6px 0;
+    font-size: 0.82rem;
+    color: #d1d1e0;
+    border-bottom: 1px solid #2a2a3e;
+    padding-bottom: 4px;
+}
+
+.metric-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.74rem;
+    color: #9ca3af;
     padding: 2px 0;
-    border-bottom: 1px solid #222;
 }
 
-.top-list li:last-child {
-    border-bottom: none;
+.metric-row strong {
+    color: #e5e4e7;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .matchup-dashboard {
-        height: 400px;
-    }
+.metric-row .green { color: #34d399; }
+.metric-row .red { color: #f87171; }
 
-    .large-stats-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .large-top-lists {
-        grid-template-columns: 1fr 1fr;
-    }
+/* Top Lists */
+.top-lists-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
 }
 
-@media (max-width: 480px) {
-    .matchup-dashboard {
-        height: 350px;
-    }
+.top-list-block {
+    background: #1f1f2e;
+    border: 1px solid #28283c;
+    border-radius: 6px;
+    padding: 10px;
+}
 
-    .large-top-lists {
-        grid-template-columns: 1fr;
-    }
+.top-list-block h5 {
+    margin: 0 0 6px 0;
+    font-size: 0.82rem;
+    color: #d1d1e0;
+    border-bottom: 1px solid #2a2a3e;
+    padding-bottom: 4px;
+}
 
-    .player-small-card {
-        flex-wrap: wrap;
-        padding: 0.4rem 0.5rem;
-    }
+.top-list-block ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
 
-    .card-stats {
-        font-size: 0.6rem;
-        gap: 0.4rem;
-    }
+.top-list-block li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: #d1d1e0;
+}
+
+.list-ship-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 3px;
+    background: #0f0f18;
+}
+
+.list-ship-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.list-ship-info small {
+    color: #8b8ba0;
+    font-size: 0.68rem;
+}
+
+.sys-name {
+    color: #60a5fa;
+}
+
+.ship-only-note {
+    color: #9ca3af;
+    font-style: italic;
+    font-size: 0.85rem;
+    margin-top: 1rem;
 }

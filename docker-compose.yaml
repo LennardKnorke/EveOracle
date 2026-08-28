@@ -40,6 +40,7 @@ services:
 
     environment:
       DATABASE_URL: mysql+aiomysql://${DB_USER}:${DB_PASSWORD}@mysql/${DB_DBNAME}
+      
 
     ports:
       - "8080:8080"
@@ -90,7 +91,7 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-
+      - ./static:/static:ro
 
 volumes:
   mysql_data:

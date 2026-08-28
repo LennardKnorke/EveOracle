@@ -15,13 +15,10 @@ function Navbar() {
     return (
         <nav className="navbar">
             <div className="navbar-brand">
-                <Link to="/">EVE Oracle</Link>
-            </div>
-            <div className="navbar-menu">
-                <Link to="/EveOracleUI">Eve Oracle UI</Link>
+                <Link to="/EveOracleUI">EVE Oracle</Link>
             </div>
             <div className="navbar-user">
-            <span>👤 {user?.char_name || "Unknown Pilot"}</span>
+                <span>👤 {user?.char_name || "Unknown Pilot"}</span>
                 <button onClick={handleLogout} className="logout-btn">
                     Logout
                 </button>

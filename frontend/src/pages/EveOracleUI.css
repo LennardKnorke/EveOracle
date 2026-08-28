@@ -1,81 +1,128 @@
 /* frontend/src/pages/EveOracleUI.css */
+
 .eve-oracle-ui {
-    padding: 20px;
-    max-width: 1400px;
+    width: 100%;
+    max-width: 1280px;
     margin: 0 auto;
+    padding: 1.5rem 1rem 3rem;
+}
+
+.ui-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #222230;
+}
+
+.ui-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-h);
+}
+
+.pilot-badge {
+    font-size: 0.85rem;
+    color: var(--text);
+    background: #181824;
+    border: 1px solid #28283c;
+    padding: 4px 10px;
+    border-radius: 4px;
+}
+
+.error-banner {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
 }
 
 .ui-layout {
-    display: grid;
-    gap: 2rem;
-    align-items: flex-start;
-    flex-wrap: wrap;
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
 }
 
-.ui-toprow {
+/* Input Section */
+.ui-input-section {
     display: flex;
     flex-wrap: wrap;
-    gap: 2rem;
-    align-items: flex-start;
+    gap: 1.25rem;
+    background: #14141e;
+    border: 1px solid #222232;
+    border-radius: 8px;
+    padding: 1.25rem;
+    align-items: flex-end;
 }
 
-
-
-.teammanager-area {
-    flex: 2 1 400px;
-    min-width: 280px;
+.input-box-wrapper {
+    flex: 1 1 340px;
 }
 
-.ui-mainrow {
-    width: 100%;
+.actions-panel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
 }
 
-.team-area {
-    flex: 2 1 400px;
-    min-width: 300px;
-}
-
-
-.character-textarea {
-    width: 100%;
-    font-family: monospace;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    resize: vertical;
-}
-
-
-button {
-    margin-top: 10px;
+/* Button UI */
+.btn {
     padding: 8px 16px;
-    background: #007bff;
-    color: white;
+    font-size: 0.85rem;
+    font-weight: 600;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
+    transition: background 0.15s ease, opacity 0.15s ease, transform 0.1s ease;
+    margin: 0;
 }
 
-button:disabled {
-    background: #6c757d;
+.btn:active {
+    transform: translateY(1px);
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: #932ee0;
+}
+
+.btn-secondary {
+    background: #252538;
+    color: #e5e4e7;
+    border: 1px solid #36364e;
+}
+
+.btn-secondary:hover {
+    background: #31314a;
+}
+
+.btn-danger {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.btn-danger:hover {
+    background: rgba(239, 68, 68, 0.3);
+}
+
+.btn:disabled {
+    opacity: 0.5;
     cursor: not-allowed;
+    transform: none;
 }
 
-.error {
-    color: red;
-    margin-top: 10px;
-}
-
-.results {
-    margin-top: 20px;
-    background: #f8f9fa;
-    padding: 10px;
-    border-radius: 4px;
-    overflow-x: auto;
-    max-height: 400px;
-    overflow-y: auto;
-}
-
-.results pre {
-    font-size: 0.8rem;
+/* Teams Section */
+.ui-teams-section {
+    width: 100%;
 }
