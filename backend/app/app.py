@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from app.database import Base, engine
 from shared.config import settings, STATIC_DIR
 
-from app.routers import auth, char
+from app.routers import auth, char, ship, model
 #from app.routers.scheduled_tasks import scheduler
 
 
@@ -20,11 +20,7 @@ async def lifespan(app: FastAPI):
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    
-
-    yield  # The application runs while this yield is active
-    
-
+    yield
     print("Shutting down.")
     await engine.dispose()
     return
@@ -70,3 +66,5 @@ async def root() -> dict:
 
 app.include_router(auth.router)
 app.include_router(char.router)
+app.include_router(ship.router)
+app.include_router(model.router)

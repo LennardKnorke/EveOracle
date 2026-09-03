@@ -3,9 +3,10 @@ apscheduler==3.11.3
 backend==0.2.4.1
 cryptography==50.0.0
 fastapi==0.141.1
+onnxruntime==1.29.0
+pymysql==1.2.0
 pydantic==2.13.4
 pydantic_settings==2.14.2
 Requests==2.34.2
 SQLAlchemy==2.0.51
 uvicorn[standard]==0.52.1
-pymysql==1.2.0

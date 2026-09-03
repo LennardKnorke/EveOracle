@@ -1,6 +1,6 @@
 # shared/zkillphone.py
 
-from datetime import date, timedelta
+from datetime import date
 import json
 from pathlib import Path
 import requests
@@ -66,8 +66,9 @@ class ZkillPhone:
     
     @staticmethod
     def fetch_price_history(type_id : str):
-        assert type_id.isdigit(), "Type Needs to be an Integer"
-        url = f"https://zkillboard.com/api/prices/{type_id}/"
+        type_str = str(type_id)
+        assert type_str.isdigit(), "Type Needs to be an Integer"
+        url = f"https://zkillboard.com/api/prices/{type_str}/"
         response = requests.get(
             url,
             timeout=30,
