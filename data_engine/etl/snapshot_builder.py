@@ -5,9 +5,10 @@ import zipfile
 import bz2
 import gzip
 import logging
+import re
 from datetime import datetime, date
 from pathlib import Path
-from typing import Dict, List, Tuple, Any
+from typing import Dict, List, Tuple, Any, Optional
 
 from tqdm import tqdm
 
@@ -16,7 +17,7 @@ from data_engine.etl.price_loader import ItemPriceLoader
 from data_engine.models.char_state import CharEntry
 from data_engine.models.ship_state import ShipEntry, init_ships_database
 from data_engine.models.rolling_window import GlobalRollingWindowManager
-from data_engine.etl.serializer import save_monthly_snapshot
+from data_engine.etl.serializer import save_monthly_snapshot, load_monthly_snapshot
 
 logger = logging.getLogger("EveOracle.DataEngine")
 
@@ -73,6 +74,50 @@ def parse_daily_killmails(raw_bytes: bytes, file_name: str) -> List[Dict[str, An
     return kms
 
 
+def get_base_hull_points(ship_class: str) -> float:
+    """Assigns approximate zKillboard base points per hull size."""
+    cls = (ship_class or "").lower()
+    if "frigate" in cls or "corvette" in cls:
+        return 10.0
+    if "destroyer" in cls:
+        return 15.0
+    if "cruiser" in cls:
+        return 30.0
+    if "battlecruiser" in cls:
+        return 50.0
+    if "battleship" in cls:
+        return 80.0
+    if "dreadnought" in cls or "carrier" in cls or "force auxiliary" in cls:
+        return 200.0
+    if "titan" in cls or "supercarrier" in cls:
+        return 500.0
+    return 20.0
+
+
+def find_latest_saved_snapshot(snapshots_dir: Path) -> Tuple[Optional[date], Optional[Path]]:
+    if not snapshots_dir.exists():
+        return None, None
+
+    files = list(snapshots_dir.glob("snapshot_*.pkl.gz"))
+    if not files:
+        return None, None
+
+    snapshots: List[Tuple[date, Path]] = []
+    for f in files:
+        if "final" in f.name:
+            continue
+        match = re.search(r"snapshot_(\d{4})-(\d{2})", f.name)
+        if match:
+            y, m = int(match.group(1)), int(match.group(2))
+            snapshots.append((date(y, m, 1), f))
+
+    if not snapshots:
+        return None, None
+
+    snapshots.sort(key=lambda s: s[0], reverse=True)
+    return snapshots[0]
+
+
 def run_snapshot_builder(start_year: int = 2007, end_year: int = 2026, overwrite: bool = False):
     SNAPSHOTS_DIR.mkdir(parents=True, exist_ok=True)
     logger.info("Initializing SDE Ships & Price Database...")
@@ -82,9 +127,27 @@ def run_snapshot_builder(start_year: int = 2007, end_year: int = 2026, overwrite
     char_store: Dict[int, CharEntry] = {}
     rolling_window = GlobalRollingWindowManager()
 
+    resume_after_date: Optional[date] = None
     current_snapshot_month: Tuple[int, int] | None = None
 
-    # Discover sources (both zip archives and folders)
+    if not overwrite:
+        latest_date, latest_path = find_latest_saved_snapshot(SNAPSHOTS_DIR)
+        if latest_path and latest_path.exists():
+            logger.info(f"⚡ Found existing checkpoint: {latest_path.name}")
+            logger.info("Hydrating state from checkpoint (takes ~1-2 seconds)...")
+            state = load_monthly_snapshot(latest_path)
+            char_store = state.get("chars", {})
+            ship_store = state.get("ships", init_ships_database())
+            rolling_window = state.get("rolling_window", GlobalRollingWindowManager())
+
+            resume_after_date = latest_date
+            current_snapshot_month = (latest_date.year, latest_date.month)
+            logger.info(f"✅ Resuming historical replay starting from {resume_after_date} forward.")
+            logger.info(f"• Pre-warmed pilots in state: {len(char_store):,}")
+    else:
+        logger.info("⚠️ Overwrite enabled: starting fresh replay from scratch.")
+
+    # Discover sources
     sources: List[Tuple[int, Path, bool]] = []
     for zip_path in sorted(KILLMAILS_DIR.glob("*.zip")):
         if zip_path.stem.isdigit():
@@ -100,11 +163,14 @@ def run_snapshot_builder(start_year: int = 2007, end_year: int = 2026, overwrite
 
     sources.sort(key=lambda s: s[0])
 
+    if resume_after_date:
+        sources = [s for s in sources if s[0] >= resume_after_date.year]
+
     if not sources:
-        logger.error(f"No killmail sources found for {start_year}-{end_year} in {KILLMAILS_DIR}")
+        logger.info("✅ All monthly snapshots up to date! Nothing new to process.")
         return
 
-    logger.info(f"🚀 Replaying history across {len(sources)} years: {[s[0] for s in sources]}")
+    logger.info(f"🚀 Processing {len(sources)} year source(s): {[s[0] for s in sources]}")
 
     for year, source_path, is_zip in tqdm(sources, desc="Overall Years", unit="year"):
         daily_files: List[Tuple[str, Any]] = []
@@ -132,12 +198,14 @@ def run_snapshot_builder(start_year: int = 2007, end_year: int = 2026, overwrite
 
                 km_dt = parse_datetime(km_time_raw)
                 km_date = km_dt.date()
+
+                if resume_after_date and km_date <= resume_after_date:
+                    continue
+
                 date_str = km_date.strftime("%Y-%m-%d")
 
-                # Advance rolling window day
                 rolling_window.advance_day(km_date)
 
-                # Check Monthly Snapshot Boundary (1st of month)
                 month_key = (km_date.year, km_date.month)
                 if current_snapshot_month is not None and month_key != current_snapshot_month:
                     snapshot_filename = f"snapshot_{current_snapshot_month[0]:04d}-{current_snapshot_month[1]:02d}.pkl.gz"
@@ -147,7 +215,7 @@ def run_snapshot_builder(start_year: int = 2007, end_year: int = 2026, overwrite
                         save_monthly_snapshot(
                             snapshot_file,
                             {
-                                "date": f"{current_snapshot_month[0]:04d}-{current_snapshot_month[1]:02d}-01",
+                                "date": f"{current_snapshot_month[0]:04d}-{current_snapshot_month[1]:02d}",
                                 "chars": char_store,
                                 "ships": ship_store,
                                 "rolling_window": rolling_window,
@@ -185,9 +253,20 @@ def run_snapshot_builder(start_year: int = 2007, end_year: int = 2026, overwrite
                 is_solo = len(valid_attackers) == 1
                 km_isk = price_loader.estimate_killmail_isk(km, date_str)
 
+                # Estimate Points for Victim and Attackers
+                vic_ship = ship_store.get(vic_sid)
+                km_points = get_base_hull_points(vic_ship.cls if vic_ship else "")
+                attacker_points = km_points / max(1, len(valid_attackers))
+
                 # 3. Update Victim
                 v_entry = char_store.setdefault(vic_cid, CharEntry(vic_cid))
-                v_entry.record_loss(isk=km_isk, is_solo=is_solo, ship_id=vic_sid)
+                v_entry.record_loss(
+                    isk=km_isk,
+                    points=km_points,
+                    is_solo=is_solo,
+                    day=km_date,
+                    ship_id=vic_sid,
+                )
                 rolling_window.record_loss(vic_cid, km_isk)
 
                 if vic_sid in ship_store:
@@ -199,7 +278,14 @@ def run_snapshot_builder(start_year: int = 2007, end_year: int = 2026, overwrite
                     att_sid = att["ship_type_id"]
 
                     a_entry = char_store.setdefault(att_cid, CharEntry(att_cid))
-                    a_entry.record_kill(isk=km_isk, is_solo=is_solo, gang_size=gang_size, ship_id=att_sid)
+                    a_entry.record_kill(
+                        isk=km_isk,
+                        points=attacker_points,
+                        is_solo=is_solo,
+                        gang_size=gang_size,
+                        day=km_date,
+                        ship_id=att_sid,
+                    )
                     rolling_window.record_kill(att_cid, km_isk)
 
                     if att_sid in ship_store:

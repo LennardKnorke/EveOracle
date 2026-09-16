@@ -3,30 +3,67 @@
 import { type ShipInfo } from './type';
 import { apiClient } from './client';
 
-let shipsCache: Record<string, ShipInfo> | null = null;
+export interface CompleteShipData {
+    ship_id: number;
+    name: string;
+    shipClass: string;
+    faction: string;
+    attributes: Record<string, any>;
+    zkill_stats: Record<string, any>;
+}
 
-export async function getShipsDatabase(): Promise<Record<string, ShipInfo>> {
-    if (shipsCache) return shipsCache;
+let shipsDatabaseCache: Record<string, CompleteShipData> | null = null;
+
+/**
+ * Loads all ships and global stats in a single bulk request from the backend.
+ */
+export async function prefetchAllShipStats(): Promise<Record<string, CompleteShipData>> {
+    if (shipsDatabaseCache) return shipsDatabaseCache;
 
     try {
-        const rawData = await apiClient<Record<string, any>>('/static/esi_static_data/ships.json');
-        const parsed: Record<string, ShipInfo> = {};
+        // 1. Fetch static list of all ship IDs from ships.json
+        const rawDogma = await apiClient<Record<string, any>>('/static/esi_static_data/ships.json');
+        const shipIds = Object.keys(rawDogma).map(Number);
 
-        for (const [key, val] of Object.entries(rawData)) {
-            parsed[key] = {
-                id: key,
-                name: val.name,
-                shipClass: val.shipClass,
-                faction: val.faction,
-            };
-        }
+        // 2. Fetch dogma + global zKill stats in one batch call
+        const batchData = await apiClient<Record<string, CompleteShipData>>('/ship/stats', {
+            method: 'POST',
+            body: JSON.stringify({ ship_ids: shipIds }),
+        });
 
-        shipsCache = parsed;
-        return parsed;
+        shipsDatabaseCache = batchData;
+        return batchData;
     } catch (err) {
-        console.warn('Failed to load ships.json from static backend mount:', err);
+        console.warn('Failed to prefetch ship stats batch, falling back to static dogma:', err);
         return {};
     }
+}
+
+export async function getShipsDatabase(): Promise<Record<string, ShipInfo>> {
+    if (shipsDatabaseCache) {
+        const simple: Record<string, ShipInfo> = {};
+        for (const [id, data] of Object.entries(shipsDatabaseCache)) {
+            simple[id] = {
+                id: data.ship_id,
+                name: data.name,
+                shipClass: data.shipClass,
+                faction: data.faction,
+            };
+        }
+        return simple;
+    }
+
+    const full = await prefetchAllShipStats();
+    const simple: Record<string, ShipInfo> = {};
+    for (const [id, data] of Object.entries(full)) {
+        simple[id] = {
+            id: data.ship_id,
+            name: data.name,
+            shipClass: data.shipClass,
+            faction: data.faction,
+        };
+    }
+    return simple;
 }
 
 export async function searchShips(query: string): Promise<ShipInfo[]> {

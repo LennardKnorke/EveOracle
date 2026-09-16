@@ -14,7 +14,6 @@ LOG_TRANSFORM_PATTERNS = (
     "mass", "powergrid", "cpu", "hp_structure", "hp_armor", "hp_shield"
 )
 
-# Columns to exclude from input features X
 METADATA_COLUMNS = {
     "killmail_id", "date", "solar_system_id", "y_isk_destroyed",
     "y_log_isk", "outcome", "variant",
@@ -32,20 +31,17 @@ class FeatureScaler:
     def fit(self, df: pd.DataFrame, feature_cols: List[str]):
         self.feature_names = feature_cols
 
-        # Identify log-transform candidates (ignoring binary flags)
         for col in feature_cols:
-            if col.endswith("_has_char") or col.endswith("_has_ship"):
+            if col.endswith("_has_char") or col.endswith("_has_ship") or "phys_" in col:
                 continue
             if any(pattern in col for pattern in LOG_TRANSFORM_PATTERNS):
                 self.log_transform_keys.add(col)
 
-        # Compute scaling parameters
         for col in feature_cols:
             vals = df[col].to_numpy(dtype=np.float32)
             if col in self.log_transform_keys:
                 vals = np.log10(np.maximum(vals, 0.0) + 1.0)
 
-            # Do not scale binary mask flags
             if col.endswith("_has_char") or col.endswith("_has_ship"):
                 self.means[col] = 0.0
                 self.stds[col] = 1.0
@@ -95,9 +91,17 @@ def load_dataset_splits(
 ) -> Tuple[DataLoader, DataLoader, DataLoader, FeatureScaler, List[str]]:
     df = pd.read_parquet(parquet_path)
 
-    feature_cols = [c for c in df.columns if c not in METADATA_COLUMNS]
+    raw_feature_cols = [c for c in df.columns if c not in METADATA_COLUMNS]
 
-    # Chronological sort for temporal train/val/test split
+    # Enforce strict semantic ordering: P1, P2 (matching P1 suffixes), then phys
+    p1_suffixes = [c[3:] for c in raw_feature_cols if c.startswith("p1_")]
+    p1_cols = [f"p1_{s}" for s in p1_suffixes]
+    p2_cols = [f"p2_{s}" for s in p1_suffixes if f"p2_{s}" in raw_feature_cols]
+    phys_cols = [c for c in raw_feature_cols if c.startswith("phys_")]
+    remaining = [c for c in raw_feature_cols if c not in p1_cols and c not in p2_cols and c not in phys_cols]
+
+    feature_cols = p1_cols + p2_cols + phys_cols + remaining
+
     df = df.sort_values(by=["date", "killmail_id"]).reset_index(drop=True)
 
     n = len(df)

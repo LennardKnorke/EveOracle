@@ -27,25 +27,28 @@ class PilotShipEncoder(nn.Module):
 
 class SiameseCombatNet(nn.Module):
     """
-    Dual-branch weight-shared Siamese network.
-    Enforces combat anti-symmetry: if P1 == P2, output is strictly 0.
+    Dual-branch weight-shared Siamese network with joint physics support.
+    Maps P1 and P2 through the identical encoder, then concatenates with relative combat physics.
     """
     def __init__(
         self,
         input_dim: int,
+        single_dim: int,
+        phys_dim: int = 7,
         embed_dim: int = 128,
         dropout: float = 0.15,
     ):
         super().__init__()
-        assert input_dim % 2 == 0, f"Input dimension ({input_dim}) must be evenly divisible by 2 for Siamese network."
-        self.single_dim = input_dim // 2
+        self.input_dim = input_dim
+        self.single_dim = single_dim
+        self.phys_dim = phys_dim
         self.embed_dim = embed_dim
 
-        # Shared weight encoder for both combatants
-        self.encoder = PilotShipEncoder(self.single_dim, embed_dim=embed_dim, dropout=dropout)
+        # Shared encoder for both combatants
+        self.encoder = PilotShipEncoder(single_dim, embed_dim=embed_dim, dropout=dropout)
 
-        # Comparative Interaction Head [z1, z2, z1 - z2, z1 * z2]
-        interaction_dim = embed_dim * 4
+        # Comparative Interaction Head [z1, z2, z1 - z2, z1 * z2, phys]
+        interaction_dim = (embed_dim * 4) + phys_dim
         self.head = nn.Sequential(
             nn.Linear(interaction_dim, embed_dim),
             nn.LayerNorm(embed_dim),
@@ -56,13 +59,18 @@ class SiameseCombatNet(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         p1 = x[:, :self.single_dim]
-        p2 = x[:, self.single_dim:]
+        p2 = x[:, self.single_dim : self.single_dim * 2]
 
         z1 = self.encoder(p1)
         z2 = self.encoder(p2)
 
         diff = z1 - z2
         mult = z1 * z2
-        interaction = torch.cat([z1, z2, diff, mult], dim=1)
+
+        if self.phys_dim > 0:
+            phys = x[:, self.single_dim * 2 :]
+            interaction = torch.cat([z1, z2, diff, mult, phys], dim=1)
+        else:
+            interaction = torch.cat([z1, z2, diff, mult], dim=1)
 
         return self.head(interaction)

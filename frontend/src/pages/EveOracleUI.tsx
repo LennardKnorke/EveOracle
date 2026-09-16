@@ -1,11 +1,12 @@
 // frontend/src/pages/EveOracleUI.tsx
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import LocalChatInputField from '../components/EveOracleUI/LocalChatCharacters';
 import TeamManagerWindow from '../components/EveOracleUI/TeamManager';
 import ShipSelectorModal from '../components/EveOracleUI/ShipSelectorModal';
 import PilotSelectorModal from '../components/EveOracleUI/PilotSelectorModal';
 import MatchupDashboard from '../components/EveOracleUI/MatchupDashboard';
+import ModelPredictionWidget from '../components/EveOracleUI/ModelPredictionWidget';
 
 import {
     type CharacterStats,
@@ -16,11 +17,12 @@ import {
     isW1,
     isW3,
 } from '../api/type';
+import { type ModelManifest, fetchAvailableModels } from '../api/models';
+import { prefetchAllShipStats } from '../api/ships';
 import { useAuth } from '../auth';
 import { apiClient } from '../api/client';
 import './EveOracleUI.css';
 
-// Payload structure returned from backend (including optional ship info from fleet ESI)
 interface BackendCharacterResponse extends CharacterStats {
     ship_id?: number | string | null;
     ship_name?: string | null;
@@ -36,6 +38,18 @@ export function EveOracleUI() {
     const [allies, setAllies] = useState<TeamToken[]>([]);
     const [neutrals, setNeutrals] = useState<TeamToken[]>([]);
     const [enemies, setEnemies] = useState<TeamToken[]>([]);
+
+    // Models & Ship Pre-fetch State
+    const [availableModels, setAvailableModels] = useState<ModelManifest[]>([]);
+    const [loadingModels, setLoadingModels] = useState(true);
+
+    // Eagerly pre-fetch all ships and models once on mount
+    useEffect(() => {
+        prefetchAllShipStats();
+        fetchAvailableModels()
+            .then(setAvailableModels)
+            .finally(() => setLoadingModels(false));
+    }, []);
 
     // Modals State
     const [shipModalState, setShipModalState] = useState<{
@@ -66,7 +80,6 @@ export function EveOracleUI() {
         return names;
     }, [allies, neutrals, enemies]);
 
-    // Available unassigned W1 pilots across all columns
     const availableW1Pilots = useMemo(() => {
         const list: { token: TeamToken; column: ColumnKey }[] = [];
         allies.filter(isW1).forEach((t) => list.push({ token: t, column: 'allies' }));
@@ -75,9 +88,6 @@ export function EveOracleUI() {
         return list;
     }, [allies, neutrals, enemies]);
 
-    /**
-     * Dispatch fetched characters into W1 (or W2 if ship present) tokens
-     */
     const distributeNewCharacters = (rawList: BackendCharacterResponse[], isFleet = false) => {
         const toAllies: TeamToken[] = [];
         const toNeutrals: TeamToken[] = [];
@@ -86,7 +96,6 @@ export function EveOracleUI() {
         rawList.forEach((raw) => {
             if (existingCharIds.has(String(raw.char_id))) return;
 
-            // Extract pure character stats
             const character: CharacterStats = {
                 char_id: raw.char_id,
                 char_name: raw.char_name,
@@ -96,7 +105,6 @@ export function EveOracleUI() {
                 stats: raw.stats,
             };
 
-            // Extract pure ship info
             const ship: ShipInfo | null =
                 raw.ship_id && raw.ship_name
                     ? {
@@ -123,9 +131,6 @@ export function EveOracleUI() {
         if (toEnemies.length > 0) setEnemies((prev) => [...prev, ...toEnemies]);
     };
 
-    /**
-     * Option 1: Fetch Fleet (W2)
-     */
     const handleFetchFleet = async () => {
         if (!user?.id) return;
         setLoading(true);
@@ -144,9 +149,6 @@ export function EveOracleUI() {
         }
     };
 
-    /**
-     * Option 2: Fetch Local Chat Pilots (W1)
-     */
     const handleFetchCharacters = async () => {
         const namesArray = characterInputs
             .split('\n')
@@ -182,9 +184,6 @@ export function EveOracleUI() {
         }
     };
 
-    /**
-     * Remove All (keep logged in user)
-     */
     const handleRemoveAll = () => {
         if (!user?.id) {
             setAllies([]);
@@ -199,9 +198,6 @@ export function EveOracleUI() {
         setEnemies((prev) => prev.filter(isUserToken));
     };
 
-    /**
-     * Move token between columns
-     */
     const handleMoveToken = (from: ColumnKey, to: ColumnKey, token: TeamToken) => {
         if (from === to) return;
 
@@ -215,9 +211,6 @@ export function EveOracleUI() {
         else if (to === 'enemies') setEnemies((prev) => [...prev, token]);
     };
 
-    /**
-     * Merge W1 and W3 into W2. Stays in W1's column.
-     */
     const handleMergeTokens = (
         draggedToken: TeamToken,
         fromCol: ColumnKey,
@@ -377,6 +370,17 @@ export function EveOracleUI() {
                     />
                 </section>
 
+                {/* Machine Learning Model Prediction Widget */}
+                <section className="ui-prediction-section" style={{ width: '100%' }}>
+                    <ModelPredictionWidget
+                        allies={allies}
+                        enemies={enemies}
+                        availableModels={availableModels}
+                        loadingModels={loadingModels}
+                    />
+                </section>
+
+                {/* Bottom Section: Matchup Dashboard */}
                 <section className="ui-matchup-section" style={{ width: '100%' }}>
                     <MatchupDashboard allies={allies} enemies={enemies} />
                 </section>

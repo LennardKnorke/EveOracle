@@ -154,22 +154,33 @@ def main():
             batch_size=args.batch_size,
         )
         input_dim = len(feature_cols)
-        model = TabularResNet(input_dim=input_dim, hidden_dim=256, num_blocks=3)
+        p1_dim = len([c for c in feature_cols if c.startswith("p1_")])
+        phys_dim = input_dim - (p1_dim * 2)
+
+        if args.model_type == "resnet":
+            model = TabularResNet(input_dim=input_dim, hidden_dim=256, num_blocks=3)
+        else:
+            model = SiameseCombatNet(
+                input_dim=input_dim,
+                single_dim=p1_dim,
+                phys_dim=phys_dim,
+                embed_dim=128
+            )
 
         trained_model, metrics = train_model(
             model=model,
             train_loader=train_loader,
             val_loader=val_loader,
             epochs=args.final_epochs,
-            model_name="Manual TabularResNet",
+            model_name=f"Manual {args.model_type.upper()}",
             leave_pbar=True,
         )
 
         package_dir = export_model_package(
             model=trained_model,
             scaler=scaler,
-            model_name="1v1_manual_resnet",
-            arch_type="RESNET",
+            model_name=f"1v1_manual_{args.model_type}",
+            arch_type=args.model_type.upper(),
             output_dir=models_dir,
             metrics=metrics,
             training_date_range=(args.start_date, args.end_date or f"{args.months} months"),

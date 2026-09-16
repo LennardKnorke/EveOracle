@@ -1,18 +1,32 @@
 # shared/config.py
 
+import logging
 from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 
+# 
 APPLICATION_NAME = "EveOracle"
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
+
+# LOGGER
+logger = logging.getLogger("eveoracle")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+
+
+# Ensure static folder is available on docker + local runs
 if Path("/static").exists():
     STATIC_DIR = Path("/static")
 else:
     STATIC_DIR = PROJECT_ROOT / "static"
 
 
+# Load Environment variables
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=str(PROJECT_ROOT / ".env"),
@@ -47,7 +61,7 @@ class Settings(BaseSettings):
 settings = Settings()
 
 
-### URLS
+### URLS macros
 ESI_AUTH_URL = "https://login.eveonline.com/v2/oauth/authorize"
 ESI_TOKEN_URL = "https://login.eveonline.com/v2/oauth/token"
 ESI_VERIFY_URL = "https://login.eveonline.com/oauth/verify"
@@ -64,8 +78,9 @@ def load_scopes() -> list[str]:
 SCOPES = load_scopes()
 
 
+# DIR + files Macros
 KILLMAILS_DIR = STATIC_DIR / "killmail_history" / "zkill"
-PRICES_DIR = STATIC_DIR / "Prices" if (STATIC_DIR / "Prices").exists() else STATIC_DIR / "prices"
+PRICES_DIR = STATIC_DIR / "prices"
 SHIP_FILE = STATIC_DIR / "esi_static_data" / "ships.json"
 SHIP_STATS_DIR = STATIC_DIR / "esi_static_data" / "ship_stats"
 SNAPSHOTS_DIR = STATIC_DIR / "snapshots" / "monthly"

@@ -13,7 +13,7 @@ ZKILL_HISTORY_URL = "https://r2z2.zkillboard.com/history/raw"
 class ZkillPhone:
     headers = {
         "Accept-Encoding": "gzip",
-        "User-Agent": "EveOracle",
+        "User-Agent": "EveOracle - https://github.com/LennardKnorke/EveOracle",
         "content-type" : "application/json"
     }
 
