@@ -26,6 +26,7 @@ download_delay_seconds = 5.0
 def init_killmails():
     KILLMAILS_DIR.mkdir(parents=True, exist_ok=True)
     first_year_zip = KILLMAILS_DIR / "2007.zip"
+    
     if first_year_zip.exists():
         return
     
@@ -128,16 +129,17 @@ def download_zkill_killmails(dt: date, file_name : str):
 def update_zkill_killmails():
     last_date = get_last_date()
     today = date.today()
-    if not (today - last_date > timedelta(days=outdated_after_days)):
+    if today - last_date <= timedelta(days=outdated_after_days):
         return
     
     logger.info(f"STARTING: Fetching Killmails")
     while last_date <= today - timedelta(days=outdated_after_days):
         date_file = f"{last_date.year}{last_date.month:02d}{last_date.day:02d}.json"
         download_zkill_killmails(last_date, date_file)
-
+        logger.info(f"Downloaded Killmail - {last_date.strftime}")
         if last_date == date(year=last_date.year, month=12, day=31):
             compress_zkill_year()
+            logger.info(f"Compressed Year - {last_date.year}")
         time.sleep(download_delay_seconds)
         last_date += timedelta(days=1)
     logger.info(f"FINISH: Fetching Killmails")
